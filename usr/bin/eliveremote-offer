@@ -1,5 +1,9 @@
 #!/bin/bash
 source /usr/lib/elive-tools/functions
+TEXTDOMAIN="eliveremote"
+export TEXTDOMAIN
+
+
 
 main(){
     # pre {{{
@@ -16,18 +20,17 @@ main(){
     # - check if ssh is set up }}}
 
     # list surgeons {{{
-    $guitool --question --text=$"This tool allows gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now. Do you want to continue?" || exit
+    $guitool --question --text=$"This tool allows gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
 
-    set -x
     while read -ru 3 line
     do
         source "$line"
         el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_STATUS"
+
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_STATUS"
-    done 3<<< "$( ls /usr/share/eliveremote/surgeons/*/profile.sh )"
-    set -x
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "^thanatermesis" )"
 
 #    $guitool --list --text=$"Select an Elive surgeon from the list" --column=$"Name" --column
     # - list surgeons }}}
