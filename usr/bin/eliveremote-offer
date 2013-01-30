@@ -7,9 +7,12 @@ export TEXTDOMAIN
 
 main(){
     # pre {{{
-    local guitool surgeon line
+    local guitool surgeon line result
 
     guitool="zenity"
+    if ! el_check_dependencies "zenity,psort" ; then
+        el_dependencies_install "zenity,elive-tools"
+    fi
     # }}}
 
     # check if ssh is set up {{{
@@ -20,19 +23,21 @@ main(){
     # - check if ssh is set up }}}
 
     # list surgeons {{{
-    $guitool --question --text=$"This tool allows gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
+    $guitool --question --text=$"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
 
-    while read -ru 3 line
+    result="$( while read -ru 3 line
     do
         source "$line"
         el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_STATUS"
 
+        echo "$line"
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_STATUS"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "^thanatermesis" )"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text=$"Select the person that you want to give access to your computer from the list" --hide-column=1 --column="" --column=$"Nickname" --column=$"Name" --column=$"Staff" || echo cancel )"
 
-#    $guitool --list --text=$"Select an Elive surgeon from the list" --column=$"Name" --column
+    source "$result"
+
     # - list surgeons }}}
 
 }
