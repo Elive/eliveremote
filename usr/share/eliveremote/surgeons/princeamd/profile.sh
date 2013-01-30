@@ -1,0 +1,5 @@
+SURGEON_NICK="PrinceAMD"
+SURGEON_NAME="Thomas Deon"
+SURGEON_STATUS="Multi-Programmer in Elive"
+SURGEON_ADDRESS="princeamd.no-ip.org"
+SURGEON_PORT="22"

@@ -1,0 +1,42 @@
+#!/bin/bash
+source /usr/lib/elive-tools/functions
+
+main(){
+    # pre {{{
+    local guitool surgeon line
+
+    guitool="zenity"
+    # }}}
+
+    # check if ssh is set up {{{
+    if ! ps aux | grep -q "root.*bin.*sshd" ; then
+        # FIXME: setup ssh (root required and/or live mode)
+        el_step_requires_fixme
+    fi
+    # - check if ssh is set up }}}
+
+    # list surgeons {{{
+    $guitool --question --text=$"This tool allows gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now. Do you want to continue?" || exit
+
+    set -x
+    while read -ru 3 line
+    do
+        source "$line"
+        el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_STATUS"
+        echo "$SURGEON_NICK"
+        echo "$SURGEON_NAME"
+        echo "$SURGEON_STATUS"
+    done 3<<< "$( ls /usr/share/eliveremote/surgeons/*/profile.sh )"
+    set -x
+
+#    $guitool --list --text=$"Select an Elive surgeon from the list" --column=$"Name" --column
+    # - list surgeons }}}
+
+}
+
+#
+#  MAIN
+#
+main "$@"
+
+# vim: set foldmethod=marker :
