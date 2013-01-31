@@ -28,15 +28,20 @@ main(){
     result="$( while read -ru 3 line
     do
         source "$line"
-        el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_STATUS"
+        el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION"
 
         echo "$line"
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
-        echo "$SURGEON_STATUS"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text=$"Select the person that you want to give access to your computer from the list" --hide-column=1 --column="" --column=$"Nickname" --column=$"Name" --column=$"Staff" || echo cancel )"
+        echo "$SURGEON_POSITION"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text=$"Select the person that you want to give access to your computer from the list" --hide-column=1 --column="" --column=$"Nickname" --column=$"Name" --column=$"Position" || echo "cancel" )"
+
+    if [[ "${result}" = "cancel" ]] ; then
+        exit
+    fi
 
     source "$result"
+    el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION,SURGEON_ADDRESS,SURGEON_PORT"
 
     # - list surgeons }}}
 
