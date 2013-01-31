@@ -1,0 +1,62 @@
+#!/bin/bash
+source /usr/lib/elive-tools/functions
+
+
+main(){
+    # pre {{{
+    local var port
+
+    # Usage
+    if [[ -z "${1}" ]] ; then
+        echo -e "Usage: $(basename $BASH_SOURCE) option, where:"
+        echo -e "-c --connect"
+        echo -e "-d --disconnect"
+        exit 1
+    fi
+
+
+
+    # }}}
+    port="2048"
+
+    case $1 in
+        -c|--connect)
+            # if we can't directly connect, wait and connect
+            if ! ssh -p ${port} root@localhost ; then
+                while true
+                do
+                    echo "waiting..."
+                    if sudo tail -40 /var/log/auth.log | grep -q eliveremote ; then
+                        # remote should be ready, connect now
+                        ssh -p ${port} root@localhost
+
+                        break
+                    fi
+                    sleep 2
+                done
+            fi
+
+            # disconnect
+            $FUNCNAME --disconnect
+            ;;
+
+        -d|--disconnect)
+
+            pid_connection="$( sudo netstat -puta | grep "localhost:${port}" | grep -v "^tcp6" | tr ' ' '\n' | grep "/sshd:" | sed 's|/sshd:.*$||g' | sort -u | head -1  )"
+
+            if [[ -n "$pid_connection" ]] ; then
+                echo "killing connection with pid: $pid_connection"
+                sudo kill "${pid_connection}"
+            fi
+
+            ;;
+    esac
+
+}
+
+#
+#  MAIN
+#
+main "$@"
+
+# vim: set foldmethod=marker :
