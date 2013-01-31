@@ -123,7 +123,7 @@ main(){
     if [[ -n $DISPLAY ]] ; then
         $guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when ${SURGEON_NICK} will tell you that all has been finished or if you see a message of connection closed"
     else
-        echo -e $"The connection is opened, press 'Control + C' for close it or reboot the computer when ${SURGEON_NICK} tell you that has finished"
+        echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when ${SURGEON_NICK} tell you that has finished"
     fi
 
 
