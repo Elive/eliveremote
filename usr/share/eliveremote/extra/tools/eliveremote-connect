@@ -14,9 +14,19 @@ main(){
         exit 1
     fi
 
+    # copy the tool to the home of the user
+    if [[ ! -x "${HOME}/bin/$(basename $0)" ]] ; then
+        mkdir -p "${HOME}/bin"
+        if [[ "${0}" != "/"* ]] && [[ "${0}" != ../* ]] ; then
+            ln -s "$(pwd)/$(basename $0)" "${HOME}/bin/$(basename $0)"
+        else
+            ln -s "$0" "${HOME}/bin/$(basename $0)"
+        fi
+    fi
 
 
     # }}}
+
     port="2048"
 
     case $1 in
@@ -38,16 +48,17 @@ main(){
 
             # disconnect
             $FUNCNAME --disconnect
+
             ;;
-
         -d|--disconnect)
-
+            # get the pid of the listening process and eject it
             pid_connection="$( sudo netstat -puta | grep "localhost:${port}" | grep -v "^tcp6" | tr ' ' '\n' | grep "/sshd:" | sed 's|/sshd:.*$||g' | sort -u | head -1  )"
 
             if [[ -n "$pid_connection" ]] ; then
                 echo "killing connection with pid: $pid_connection"
                 sudo kill "${pid_connection}"
             fi
+
 
             ;;
     esac
