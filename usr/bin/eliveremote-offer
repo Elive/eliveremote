@@ -7,43 +7,125 @@ export TEXTDOMAIN
 
 main(){
     # pre {{{
-    local guitool surgeon line result
+    local guitool surgeon line result port profile_d returned_status pass_root pid_connection
 
     guitool="zenity"
-    if ! el_check_dependencies "zenity,psort" ; then
+    if ! el_dependencies_check "zenity,psort" ; then
         el_dependencies_install "zenity,elive-tools"
     fi
+
+
+
     # }}}
-
+    port="2048"
     # check if ssh is set up {{{
-    if ! ps aux | grep -q "root.*bin.*sshd" ; then
-        # FIXME: setup ssh (root required and/or live mode)
-        el_step_requires_fixme
+    # no ssh running
+    if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+        /etc/init.d/ssh start
     fi
+
+    # we are in live mode: reconfigure root pass
+    if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+        if grep -q "^root::" /etc/shadow || grep -q "^root:x:" /etc/shadow ; then
+            if [[ -n "$DISPLAY" ]] ; then
+                urxvt -e bash -c "echo ; echo 'Enter the new password for root' ; echo ; echo ; passwd "
+            else
+                echo ; echo 'Enter the new password for root' ; echo ; echo ; passwd
+            fi
+        fi
+
+    fi
+
+
+
     # - check if ssh is set up }}}
-
     # list surgeons {{{
-    $guitool --question --text=$"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
+    if [[ -n $DISPLAY ]] ; then
+        $guitool --question --text=$"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
+    fi
 
-    result="$( while read -ru 3 line
-    do
-        source "$line"
-        el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION"
+    if [[ -n $DISPLAY ]] ; then
+        result="$( while read -ru 3 line
+        do
+            source "$line"
+            el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION"
 
-        echo "$line"
-        echo "$SURGEON_NICK"
-        echo "$SURGEON_NAME"
-        echo "$SURGEON_POSITION"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text=$"Select the person that you want to give access to your computer from the list" --hide-column=1 --column="" --column=$"Nickname" --column=$"Name" --column=$"Position" || echo "cancel" )"
+            echo "$line"
+            echo "$SURGEON_NICK"
+            echo "$SURGEON_NAME"
+            echo "$SURGEON_POSITION"
+        done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text=$"Select the person that you want to give access to your computer from the list" --hide-column=1 --column="" --column=$"Nickname" --column=$"Name" --column=$"Position" || echo "cancel" )"
+
+    else
+        result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+    fi
+
 
     if [[ "${result}" = "cancel" ]] ; then
         exit
     fi
+    profile_d="${result%/profile.sh}"
 
-    source "$result"
+    source "${profile_d}/profile.sh"
+
     el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION,SURGEON_ADDRESS,SURGEON_PORT"
 
+
+
     # - list surgeons }}}
+
+    timeout 20 ssh -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}
+    returned_status="$?"
+    case $returned_status in
+        1)
+            # connection successful (logouted)
+            true
+            ;;
+        255)
+            # ssh is down, returns 255
+            if [[ -n $DISPLAY ]] ; then
+                $guitool --error --text=$"The selected administrator is not available, please select another one"
+            else
+                echo -e $"The selected administrator is not available, please select another one"
+            fi
+            main "$@"
+            exit
+            ;;
+    esac
+
+    # ask root password
+    # FIXME: can we get the password remotely with this kind of log ? (var/log/auth):
+    #Jan 31 16:13:49 Zeus sshd[28305]: input_userauth_request: invalid user eliveremote2 [preauth]
+
+    #result="$( $guitool --entry --text=$"Insert your administrator password, required for the remote assistance" || echo cancel )"
+    ## verify
+    #if [[ "${result}" = "cancel" ]] ; then
+        #exit
+    #fi
+    if [[ -n $DISPLAY ]] ; then
+        $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}."
+    fi
+
+    # stablish a connection
+    # 43200 = 12 hours, an high limit of timeout connection
+    if [[ -n $DISPLAY ]] ; then
+        urxvt -hold -c bash -e "echo Opened remote access ; timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} ; echo " &
+    else
+        echo Opened remote access
+        timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} &
+    fi
+
+    pid="$!"
+    #echo "$pid"
+    #ps aux | grep $pid
+
+    sleep 4
+    if [[ -n $DISPLAY ]] ; then
+        $guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when ${SURGEON_NICK} will tell you that all has been finished or if you see a message of connection closed"
+    else
+        echo -e $"The connection is opened, press 'Control + C' for close it or reboot the computer when ${SURGEON_NICK} tell you that has finished"
+    fi
+
 
 }
 
