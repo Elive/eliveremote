@@ -31,6 +31,9 @@ main(){
 
     case $1 in
         -c|--connect)
+            # some useful info
+            el_explain 0 "'Connection refused' can mean that the password is not set in the remote"
+
             # if we can't directly connect, wait and connect
             if ! ssh -p ${port} root@localhost ; then
                 while true

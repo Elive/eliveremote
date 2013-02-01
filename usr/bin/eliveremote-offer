@@ -26,14 +26,13 @@ main(){
 
     # we are in live mode: reconfigure root pass
     if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
-        if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
-            if [[ -n "$DISPLAY" ]] ; then
-                urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; passwd "
-            else
-                echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; passwd
-            fi
+        #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
+        # ^ always re-configure root password for live mode
+        if [[ -n "$DISPLAY" ]] ; then
+            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; passwd "
+        else
+            echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; passwd
         fi
-
     fi
 
 
