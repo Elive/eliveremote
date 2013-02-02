@@ -144,12 +144,12 @@ main(){
     #echo "$pid"
     #ps aux | grep $pid
 
-    sleep 4
-    if [[ -n $DISPLAY ]] ; then
-        $guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
-    else
-        echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
-    fi
+    #sleep 4
+    #if [[ -n $DISPLAY ]] ; then
+        #$guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
+    #else
+        #echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
+    #fi
 
 
     # - stablish connection }}}
