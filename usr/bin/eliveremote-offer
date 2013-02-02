@@ -51,7 +51,7 @@ main(){
         #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
-            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd "
+            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 1"
         else
             echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; sudo passwd
         fi
@@ -146,9 +146,9 @@ main(){
 
     #sleep 4
     #if [[ -n $DISPLAY ]] ; then
-        #$guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
+        #$guitool --info --text= "The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
     #else
-        #echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
+        #echo -e   "The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
     #fi
 
 
