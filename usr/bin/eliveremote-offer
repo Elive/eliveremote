@@ -133,9 +133,10 @@ main(){
     # stablish a connection
     # 43200 = 12 hours, an high limit of timeout connection
     if [[ -n $DISPLAY ]] ; then
-        urxvt -hold -e bash -c "echo Opened remote access ; echo ; timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} ; echo " &
+        urxvt -hold -e bash -c "echo Opened remote access ; echo ; timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} ; echo Please close the terminal" &
     else
         echo Opened remote access
+        echo
         timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} &
     fi
 
