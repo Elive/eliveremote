@@ -91,7 +91,8 @@ main(){
     # - list surgeons }}}
 
     # check connection with surgeon {{{
-    timeout 25 ssh -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}
+    echo -e "\ntesting availability of connection with the remote"
+    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}
     returned_status="$?"
     case $returned_status in
         1)
@@ -144,9 +145,9 @@ main(){
 
     sleep 4
     if [[ -n $DISPLAY ]] ; then
-        $guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when ${SURGEON_NICK} will tell you that all has been finished or if you see a message of connection closed"
+        $guitool --info --text=$"The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
     else
-        echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when ${SURGEON_NICK} tell you that has finished"
+        echo -e $"The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
     fi
 
 
