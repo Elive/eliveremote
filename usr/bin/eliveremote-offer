@@ -29,9 +29,9 @@ main(){
         #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
-            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; passwd "
+            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd "
         else
-            echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; passwd
+            echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; sudo passwd
         fi
     fi
 
