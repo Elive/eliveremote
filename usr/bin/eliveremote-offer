@@ -10,22 +10,44 @@ main(){
     local guitool surgeon line result port profile_d returned_status pass_root pid_connection
 
     guitool="zenity"
-    if ! el_dependencies_check "zenity,psort" ; then
-        el_dependencies_install "zenity,elive-tools"
+    if ! el_dependencies_check "zenity,psort,sshd" ; then
+        el_dependencies_install "zenity,elive-tools,ssh"
+
+        # verify that ssh is running
+        if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+            if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+                sudo /etc/init.d/ssh start
+            else
+                if [[ -n $DISPLAY ]] ; then
+                    gksu /etc/init.d/ssh start
+                else
+                    el_error $"You need to install ssh and have it running first"
+                fi
+            fi
+        fi
     fi
 
 
 
     # }}}
     port="2048"
-    # check if ssh is set up {{{
-    # no ssh running
-    if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-        /etc/init.d/ssh start
+
+    # check if our ssh is set up {{{
+    if [[ -n $DISPLAY ]] ; then
+        $guitool --question --text=$"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
+    else
+        echo -e $"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now."
+        echo -e "Press ^C if you want to exit now"
     fi
+
 
     # we are in live mode: reconfigure root pass
     if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+        # no ssh running
+        if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+            sudo /etc/init.d/ssh start
+        fi
+
         #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
@@ -35,14 +57,8 @@ main(){
         fi
     fi
 
-
-
     # - check if ssh is set up }}}
     # list surgeons {{{
-    if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text=$"This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now.""\n"$"Do you want to continue?" || exit
-    fi
-
     if [[ -n $DISPLAY ]] ; then
         result="$( while read -ru 3 line
         do
@@ -74,6 +90,7 @@ main(){
 
     # - list surgeons }}}
 
+    # check connection with surgeon {{{
     timeout 25 ssh -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}
     returned_status="$?"
     case $returned_status in
@@ -96,6 +113,9 @@ main(){
             ;;
     esac
 
+
+    # - check connectivity }}}
+    # stablish connection {{{
     # ask root password
     # FIXME: can we get the password remotely with this kind of log ? (var/log/auth):
     #Jan 31 16:13:49 Zeus sshd[28305]: input_userauth_request: invalid user eliveremote2 [preauth]
@@ -130,6 +150,7 @@ main(){
     fi
 
 
+    # - stablish connection }}}
 }
 
 #
