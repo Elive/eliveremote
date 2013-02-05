@@ -3,11 +3,166 @@ source /usr/lib/elive-tools/functions
 TEXTDOMAIN="eliveremote"
 export TEXTDOMAIN
 
+trap "cleanups 1 SIGHUP" SIGHUP
+trap "cleanups 1 KILL" KILL
+trap "cleanups 1 QUIT" QUIT
+trap "cleanups 1 TERM" TERM
+#trap "cleanups 1 EXIT" EXIT
+trap "cleanups 1 INT" INT
+trap "cleanups 1 ERR" ERR
+
+logs="/tmp/.$(basename $0)-${USER}-logs.txt"
+
+#===  FUNCTION  ================================================================
+#          NAME:  cleanups
+#   DESCRIPTION:  function for exit / end processes / cleanups
+#===============================================================================
+cleanups(){
+    # pre {{{
+    el_debug "$@"
+
+    # }}}
+    # remove existing connection
+    if [[ -n "$pid_connection" ]] ; then
+        kill "$pid_connection" 2>/dev/null || kill -9 "${pid_connection}" 2>/dev/null
+    fi
+
+    # remove other possible connections
+    if ps aux | grep -v grep | grep -q "ssh -o StrictHostKey" ; then
+        killall ssh 2>/dev/null
+        killall -9 ssh 2>/dev/null
+    fi
+
+}
+
+#===  FUNCTION  ================================================================
+#          NAME:  port_verify
+#   DESCRIPTION:  verify if the port is busy or not
+#    PARAMETERS:  file with logs
+#       RETURNS:  false if we need to enter in a new loop (for use in parent)
+#===============================================================================
+port_verify(){
+    # pre {{{
+    local file
+    el_debug
+    el_security_function_loop || return
+
+    file="$1"
+    el_check_variables "file"
+    el_check_files "${file}"
+
+    # }}}
+
+    # port busy ?
+    if grep -q "remote port forwarding failed for listen port" "${file}"  ; then
+        # report error to surgeon
+        el_explain 0 "port ${port_local} busy, trying with the next one"
+
+        # increase port
+        port_local="$(( $port_local + 1 ))"
+        if [[ "${port_local}" -gt "${port_local_max}" ]] ; then
+            el_error "reached maximum port available, exiting..."
+            exit 1
+        fi
+
+        # inform about new port to use
+        if [[ -n $DISPLAY ]] ; then
+            xchat -e -c "msg ${SURGEON_NICK} port busy, trying with:  ${port_local}"
+        fi
+
+        # run again
+        ${FUNCNAME[1]}
+        return 1
+    fi
+
+    el_explain 0 "port ${port_local} accepted"
+
+}
+#===  FUNCTION  ================================================================
+#          NAME:  connection_check
+#   DESCRIPTION:  check if the remote is reachable
+#===============================================================================
+connection_check(){
+    # pre {{{
+    el_debug
+
+    el_check_variables "${port_local}"
+
+    # }}}
+    # check connection with surgeon {{{
+    echo -e "\ntesting availability of connection with the remote"
+    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}"
+    returned_status="$?"
+    case $returned_status in
+        1)
+            if ! port_verify ; then
+                # break because we already enter again
+                break
+            fi
+
+            # connection successful (logouted)
+            true
+            ;;
+        255)
+            # ssh is down, returns 255
+            if [[ -n $DISPLAY ]] ; then
+                $guitool --error --text=$"The selected administrator is not available, please select another one"
+            else
+                echo -e $"The selected administrator is not available, please select another one"
+            fi
+            main "$@"
+            exit
+            ;;
+        *)
+            el_warning "unknown return status for the remote check, please report it: $returned_status"
+            ;;
+    esac
+
+
+    # - check connectivity }}}
+
+}
+#===  FUNCTION  ================================================================
+#          NAME:  connection_stablish
+#   DESCRIPTION:  open the connection and track it
+#    PARAMETERS:  -
+#       RETURNS:  -
+#===============================================================================
+connection_stablish(){
+    # pre {{{
+    el_debug is_reported_port_used sleep_time
+
+    # cleanups function for remove remaining process
+    cleanups
+
+    rm -f "${logs}"
+
+    # }}}
+
+    timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
+    pid_connection="$!"
+
+    sleep_time=4
+    while true
+    do
+        # 10 seconds per every check should be enough
+        sleep "${sleep_time}"
+
+        if ! port_verify ; then
+            # break because we already enter again
+            break
+        fi
+
+        # increment the time to wait
+        sleep_time=10
+    done
+
+}
 
 
 main(){
     # pre {{{
-    local guitool surgeon line result port profile_d returned_status pass_root pid_connection
+    local guitool surgeon line result profile_d returned_status pass_root
 
     guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
     if ! el_dependencies_check "zenity,psort,sshd" ; then
@@ -30,7 +185,9 @@ main(){
 
 
     # }}}
-    port="2048"
+    port_local_min="2048"
+    port_local_max="2068"
+    port_local="${port_local_min}"
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
@@ -119,48 +276,10 @@ main(){
 
     # - list surgeons }}}
 
-    # check connection with surgeon {{{
-    echo -e "\ntesting availability of connection with the remote"
-    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}
-    returned_status="$?"
-    case $returned_status in
-        1)
-            # connection successful (logouted)
-            true
-            ;;
-        255)
-            # ssh is down, returns 255
-            if [[ -n $DISPLAY ]] ; then
-                $guitool --error --text=$"The selected administrator is not available, please select another one"
-            else
-                echo -e $"The selected administrator is not available, please select another one"
-            fi
-            main "$@"
-            exit
-            ;;
-        *)
-            el_warning "unknown return status for the remote check, please report it: $returned_status"
-            ;;
-    esac
+    connection_check
 
+    connection_stablish
 
-    # - check connectivity }}}
-    # stablish connection {{{
-
-    # 43200 = 12 hours, an high limit of timeout connection
-    if [[ -n $DISPLAY ]] ; then
-        urxvt -hold -e bash -c "echo Opened remote access ; echo ; timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} ; echo Please close the terminal" &
-    else
-        echo Opened remote access
-        echo
-        timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} &
-    fi
-
-    pid="$!"
-
-
-
-    # - stablish connection }}}
     # give your connection info {{{
 
     # now that we are connected, give the info
@@ -176,7 +295,7 @@ main(){
             # wait an entire minute for a successful connection, just in case that less is not enough
             sleep 60
             xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}"
-            xchat -e -c "msg ${SURGEON_NICK} port:       ${port}"
+            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}"
             $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
         else
             $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
