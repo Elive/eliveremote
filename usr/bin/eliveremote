@@ -225,9 +225,9 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --info --text=$"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+                    $guitool --info --text=$"The remote user should be now connected, please wait until a message appears about that the connection has finished"
                 else
-                    echo -e $"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+                    echo -e $"The remote user should be now connected, please wait until a message appears about that the connection has finished"
                 fi
 
 
