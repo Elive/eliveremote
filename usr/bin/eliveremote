@@ -49,7 +49,15 @@ port_verify(){
 
     file="$1"
     el_check_variables "file"
-    el_check_files "${file}"
+
+    if ! [[ -e "$file" ]] ; then
+        sleep 2
+        if ! [[ -e "$file" ]] ; then
+            el_explain 0 "file to verify not exist, ignoring verification of port, it should be ok"
+            return
+        fi
+    fi
+
 
     # }}}
 
@@ -90,7 +98,7 @@ connection_check(){
 
     # }}}
     # check connection with surgeon {{{
-    echo -e "\ntesting availability of connection with the remote"
+
     timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}"
     returned_status="$?"
     case $returned_status in
@@ -130,7 +138,8 @@ connection_check(){
 #===============================================================================
 connection_stablish(){
     # pre {{{
-    el_debug is_reported_port_used sleep_time
+    el_debug
+    local sleep_time
 
     # cleanups function for remove remaining process
     cleanups
