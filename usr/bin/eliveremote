@@ -77,6 +77,8 @@ port_verify(){
         ${FUNCNAME[1]}
         return 1
     fi
+
+    is_port_accepted=1
 }
 #===  FUNCTION  ================================================================
 #          NAME:  connection_check
@@ -96,14 +98,18 @@ connection_check(){
     timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}"
     returned_status="$?"
     case $returned_status in
+
         1)
-            if ! port_verify "${logs}" ; then
-                # break because we already enter again
-                break
+            if ! ((is_port_accepted)) ; then
+                if ! port_verify "${logs}" ; then
+                    # break because we already enter again
+                    break
+                fi
             fi
 
             # connection successful (logouted)
             true
+
             ;;
         255)
             # ssh is down, returns 255
@@ -114,6 +120,7 @@ connection_check(){
             fi
             main "$@"
             exit
+
             ;;
         *)
             el_warning "unknown return status for the remote check, please report it: $returned_status"
@@ -148,21 +155,17 @@ connection_stablish(){
     timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
     pid_connection="$!"
 
-    sleep_time=4
     while true
     do
-        # 10 seconds per every check should be enough
-        sleep "${sleep_time}"
+        sleep 6
 
-        if ! port_verify "${logs}" ; then
-            # break because we already enter again
-            break
+        if ! ((is_port_accepted)) ; then
+            if ! port_verify "${logs}" ; then
+                # break because we already enter again
+                break
+            fi
         fi
-
-        # increment the time to wait
-        sleep_time=10
     done
-
 }
 
 
