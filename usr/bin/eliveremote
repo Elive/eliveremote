@@ -146,17 +146,7 @@ main(){
 
     # - check connectivity }}}
     # stablish connection {{{
-    # ask root password
-    # FIXME: can we get the password remotely with this kind of log ? (var/log/auth):
-    #Jan 31 16:13:49 Zeus sshd[28305]: input_userauth_request: invalid user eliveremote2 [preauth]
 
-    #result="$( $guitool --entry --text=$"Insert your administrator password, required for the remote assistance" || echo cancel )"
-    ## verify
-    #if [[ "${result}" = "cancel" ]] ; then
-        #exit
-    #fi
-
-    # stablish a connection
     # 43200 = 12 hours, an high limit of timeout connection
     if [[ -n $DISPLAY ]] ; then
         urxvt -hold -e bash -c "echo Opened remote access ; echo ; timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} ; echo Please close the terminal" &
@@ -167,6 +157,11 @@ main(){
     fi
 
     pid="$!"
+
+
+
+    # - stablish connection }}}
+    # give your connection info {{{
 
     # now that we are connected, give the info
     if [[ -n $DISPLAY ]] ; then
@@ -190,18 +185,8 @@ main(){
         echo -e $"Please contact ${SURGEON_NICK} for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server"
     fi
 
-    #echo "$pid"
-    #ps aux | grep $pid
 
-    #sleep 4
-    #if [[ -n $DISPLAY ]] ; then
-        #$guitool --info --text= "The opened terminal allows to maintain the connection opened, you can close it when the remote person tell you that all has been finished or if you see a message of connection closed"
-    #else
-        #echo -e   "The connection is opened, press 'Control + C' for close it\nor reboot the computer when the remote person tell you that has finished"
-    #fi
-
-
-    # - stablish connection }}}
+    # - give your connection info }}}
 }
 
 #
