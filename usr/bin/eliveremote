@@ -77,9 +77,6 @@ port_verify(){
         ${FUNCNAME[1]}
         return 1
     fi
-
-    el_explain 0 "port ${port_local} accepted"
-
 }
 #===  FUNCTION  ================================================================
 #          NAME:  connection_check
@@ -290,6 +287,8 @@ main(){
     connection_stablish
 
     # give your connection info {{{
+
+    el_explain 0 "port ${port_local} accepted"
 
     # now that we are connected, give the info
     if [[ -n $DISPLAY ]] ; then
