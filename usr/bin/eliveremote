@@ -33,6 +33,11 @@ cleanups(){
         killall -9 ssh 2>/dev/null
     fi
 
+    # close progress dialog
+    if [[ -n "$pid_progress" ]] ; then
+        kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
+    fi
+
 }
 
 #===  FUNCTION  ================================================================
@@ -95,7 +100,7 @@ connection_check(){
     # }}}
     # check connection with surgeon {{{
 
-    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}"
+    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
     returned_status="$?"
     case $returned_status in
 
@@ -122,8 +127,14 @@ connection_check(){
             exit
 
             ;;
+        124)
+            $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+            exit
+
+            ;;
         *)
             el_warning "unknown return status for the remote check, please report it: $returned_status"
+            cat "${logs}"
             ;;
     esac
 
@@ -143,7 +154,8 @@ connection_stablish(){
 
     el_security_function_loop 22 || return
 
-    local sleep_time
+    local loops is_connection_started
+    loops=0
 
     # cleanups function for remove remaining process
     cleanups
@@ -159,12 +171,29 @@ connection_stablish(){
     do
         sleep 6
 
+        # try with another port if this one not works
         if ! ((is_port_accepted)) ; then
             if ! port_verify "${logs}" ; then
                 # break because we already enter again
                 break
             fi
         fi
+
+        if ! ((is_connection_started)) ; then
+            if [[ "$loops" -gt 2 ]] ; then
+                $guitool --info --text=$"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+            fi
+            is_connection_started=1
+        fi
+
+        # check if connection stills up
+        if ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
+            $guitool --info --text=$"Connection finished"
+            cleanups
+            exit
+        fi
+
+        loops="$(( $loops + 1 ))"
     done
 }
 
@@ -284,6 +313,13 @@ main(){
 
 
     # - list surgeons }}}
+
+    if [[ -n "$DISPLAY" ]] ; then
+        { sleep 1 ; echo 10 ; sleep 1000 ; } \
+            | $guitool --progress --text=$"Connecting, please wait..." --pulsate &
+        pid_progress=$!
+    fi
+
 
     connection_check
 
