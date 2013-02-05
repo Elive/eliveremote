@@ -158,7 +158,11 @@ connection_stablish(){
     loops=0
 
     # cleanups function for remove remaining process
-    cleanups
+    # remove existing connection
+    if [[ -n "$pid_connection" ]] ; then
+        kill "$pid_connection" 2>/dev/null || kill -9 "${pid_connection}" 2>/dev/null
+    fi
+
 
     rm -f "${logs}"
 
@@ -180,10 +184,14 @@ connection_stablish(){
         fi
 
         if ! ((is_connection_started)) ; then
-            if [[ "$loops" -gt 2 ]] ; then
+            if [[ "$loops" -gt 3 ]] ; then
+                el_explain 0 "using port __${port_local}__"
+
+                kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
                 $guitool --info --text=$"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+
+                is_connection_started=1
             fi
-            is_connection_started=1
         fi
 
         # check if connection stills up

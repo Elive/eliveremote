@@ -19,6 +19,7 @@ do_connect(){
     el_check_variables "port"
 
     el_explain 0 "note: 'Connection refused' can mean that the password is not set in the remote"
+    el_explain 0 "to copy files use: __scp -P $port root@localhost:/tmp__"
 
     # if we can't directly connect, wait and connect
     if ! ssh -p ${port} root@localhost ; then
