@@ -86,7 +86,7 @@ connection_check(){
     # pre {{{
     el_debug
 
-    el_check_variables "${port_local}"
+    el_check_variables "port_local"
 
     # }}}
     # check connection with surgeon {{{
