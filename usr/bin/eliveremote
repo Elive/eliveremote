@@ -95,7 +95,7 @@ connection_check(){
     returned_status="$?"
     case $returned_status in
         1)
-            if ! port_verify ; then
+            if ! port_verify "${logs}" ; then
                 # break because we already enter again
                 break
             fi
@@ -148,7 +148,7 @@ connection_stablish(){
         # 10 seconds per every check should be enough
         sleep "${sleep_time}"
 
-        if ! port_verify ; then
+        if ! port_verify "${logs}" ; then
             # break because we already enter again
             break
         fi
