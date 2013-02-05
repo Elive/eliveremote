@@ -3,13 +3,13 @@ source /usr/lib/elive-tools/functions
 TEXTDOMAIN="eliveremote"
 export TEXTDOMAIN
 
-trap "cleanups 1 SIGHUP" SIGHUP
-trap "cleanups 1 KILL" KILL
-trap "cleanups 1 QUIT" QUIT
-trap "cleanups 1 TERM" TERM
+trap "cleanups 1 SIGHUP ; exit" SIGHUP
+trap "cleanups 1 KILL ; exit" KILL
+trap "cleanups 1 QUIT ; exit" QUIT
+trap "cleanups 1 TERM ; exit" TERM
 #trap "cleanups 1 EXIT" EXIT
-trap "cleanups 1 INT" INT
-trap "cleanups 1 ERR" ERR
+trap "cleanups 1 INT ; exit" INT
+trap "cleanups 1 ERR ; exit" ERR
 
 logs="/tmp/.$(basename $0)-${USER}-logs.txt"
 
@@ -306,6 +306,8 @@ main(){
 
 
     # - give your connection info }}}
+
+    cleanups
 }
 
 #
