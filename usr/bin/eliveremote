@@ -48,7 +48,7 @@ main(){
         if [[ -n "$DISPLAY" ]] ; then
             #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
             if $guitool --question --text=$"You are in live mode, do you want to change your default 'elive' root password to a new one for increase the security of your computer?" ; then
-                result="$( $guitool --entry --text=$"Insert a new password for root, remember to share it with the administrator (and only this person) for being able to connect remotely" || echo cancel )"
+                result="$( $guitool --entry --text=$"Insert a new password for root" || echo cancel )"
                 # verify
                 if [[ "${result}" = "cancel" ]] ; then
                     exit
@@ -164,12 +164,13 @@ main(){
         fi
 
         # automatic mode
-        if $guitool --question --text=$"Do you want to automatically inform the details of the connection to the administrator? (recommended)" ; then
+        if $guitool --question --text=$"Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" ; then
             xchat &
-            sleep 25
+            # wait an entire minute for a successful connection, just in case that less is not enough
+            sleep 60
             xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}"
             xchat -e -c "msg ${SURGEON_NICK} port:       ${port}"
-            $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you"
+            $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
         else
             $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
         fi
