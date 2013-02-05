@@ -73,11 +73,6 @@ port_verify(){
             exit 1
         fi
 
-        # inform about new port to use
-        if [[ -n $DISPLAY ]] ; then
-            xchat -e -c "msg ${SURGEON_NICK} port busy, trying with:  ${port_local}"
-        fi
-
         # run again
         ${FUNCNAME[1]}
         return 1
