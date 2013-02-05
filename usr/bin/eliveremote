@@ -45,7 +45,7 @@ port_verify(){
     # pre {{{
     local file
     el_debug
-    el_security_function_loop || return
+    el_security_function_loop 22 || return
 
     file="$1"
     el_check_variables "file"
@@ -88,6 +88,8 @@ port_verify(){
 connection_check(){
     # pre {{{
     el_debug
+
+    el_security_function_loop 22 || return
 
     el_check_variables "port_local"
 
@@ -134,6 +136,9 @@ connection_check(){
 connection_stablish(){
     # pre {{{
     el_debug
+
+    el_security_function_loop 22 || return
+
     local sleep_time
 
     # cleanups function for remove remaining process
@@ -298,8 +303,8 @@ main(){
             xchat &
             # wait an entire minute for a successful connection, just in case that less is not enough
             sleep 60
-            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}"
-            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}"
+            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
+            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
             $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
         else
             $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
