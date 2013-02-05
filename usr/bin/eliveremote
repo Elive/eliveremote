@@ -127,8 +127,13 @@ connection_check(){
             exit
 
             ;;
-        124)
-            $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+        124|123)
+            if [[ -n $DISPLAY ]] ; then
+                $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+            else
+                echo -e $"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+            fi
+
             exit
 
             ;;
@@ -185,18 +190,61 @@ connection_stablish(){
 
         if ! ((is_connection_started)) ; then
             if [[ "$loops" -gt 3 ]] ; then
+
+                is_connection_started=1
+
                 el_explain 0 "using port __${port_local}__"
 
                 kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
-                $guitool --info --text=$"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
 
-                is_connection_started=1
+
+                # share your connection info {{{
+
+                # now that we are connected, give the info
+                if [[ -n $DISPLAY ]] ; then
+                    # xchat available ?
+                    if ! el_dependencies_check xchat ; then
+                        el_dependencies_install xchat
+                    fi
+
+                    # automatic mode
+                    if $guitool --question --text=$"Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" ; then
+                        xchat &
+                        # wait an entire minute for a successful connection, just in case that less is not enough
+                        sleep 60
+                        xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
+                        xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
+                        $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
+                    else
+                        $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
+                    fi
+                else
+                    echo -e $"Please contact ${SURGEON_NICK} for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server"
+                fi
+
+
+                # please wait until it closes
+                if [[ -n "$DISPLAY" ]] ; then
+                    $guitool --info --text=$"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+                else
+                    echo -e $"The remote should be now actually connected, please wait until a message appears about that the connection has finished"
+                fi
+
+
+
+                # - share your connection info }}}
             fi
         fi
 
         # check if connection stills up
         if ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
-            $guitool --info --text=$"Connection finished"
+
+            if [[ -n "$DISPLAY" ]] ; then
+                $guitool --info --text=$"Connection finished"
+            else
+                echo -e $"Connection finished"
+            fi
+
             cleanups
             exit
         fi
@@ -333,34 +381,6 @@ main(){
 
     connection_stablish
 
-    # give your connection info {{{
-
-    el_explain 0 "port ${port_local} accepted"
-
-    # now that we are connected, give the info
-    if [[ -n $DISPLAY ]] ; then
-        # xchat available ?
-        if ! el_dependencies_check xchat ; then
-            el_dependencies_install xchat
-        fi
-
-        # automatic mode
-        if $guitool --question --text=$"Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" ; then
-            xchat &
-            # wait an entire minute for a successful connection, just in case that less is not enough
-            sleep 60
-            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
-            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
-            $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
-        else
-            $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
-        fi
-    else
-        echo -e $"Please contact ${SURGEON_NICK} for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server"
-    fi
-
-
-    # - give your connection info }}}
 
     cleanups
 }
