@@ -9,7 +9,7 @@ main(){
     # pre {{{
     local guitool surgeon line result port profile_d returned_status pass_root pid_connection
 
-    guitool="zenity"
+    guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
     if ! el_dependencies_check "zenity,psort,sshd" ; then
         el_dependencies_install "zenity,elive-tools,ssh"
 
@@ -43,21 +43,50 @@ main(){
 
     # we are in live mode: reconfigure root pass
     if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+        #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
+        # ^ always re-configure root password for live mode
+        if [[ -n "$DISPLAY" ]] ; then
+            #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
+            if $guitool --question --text=$"You are in live mode, do you want to change your default 'elive' root password to a new one for increase the security of your computer?" ; then
+                result="$( $guitool --entry --text=$"Insert a new password for root, remember to share it with the administrator (and only this person) for being able to connect remotely" || echo cancel )"
+                # verify
+                if [[ "${result}" = "cancel" ]] ; then
+                    exit
+                fi
+                pass_root="$result"
+
+                # change root password
+                echo "root:${pass_root}" | sudo chpasswd -m
+            else
+                pass_root="elive"
+            fi
+
+        else
+            echo ; echo 'Enter the new password for root (hidden)' ; echo 'You need to give this password to the admin in order to connect' ; echo ; echo ; sudo passwd
+        fi
+
         # no ssh running
         if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
             sudo /etc/init.d/ssh start
         fi
 
-        #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
-        # ^ always re-configure root password for live mode
+    fi
+
+
+
+    # - check if ssh is set up }}}
+    # internet connection {{{
+    if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
-            urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 1"
+            $guitool --info --text=$"You need to be connected to internet, please connect first and then continue"
         else
-            echo ; echo 'Enter the new password for root (hidden)' ; echo ; echo ; sudo passwd
+            echo $"You need to be connected to internet, please connect first and then continue"
+            read nada
         fi
     fi
 
-    # - check if ssh is set up }}}
+
+    # - internet connection }}}
     # list surgeons {{{
     if [[ -n $DISPLAY ]] ; then
         result="$( while read -ru 3 line
@@ -126,8 +155,26 @@ main(){
     #if [[ "${result}" = "cancel" ]] ; then
         #exit
     #fi
+
+
     if [[ -n $DISPLAY ]] ; then
-        $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}."
+        # xchat available ?
+        if ! el_dependencies_check xchat ; then
+            el_dependencies_install xchat
+        fi
+
+        # automatic mode
+        if $guitool --question --text=$"Do you want to automatically inform the details of the connection to the administrator? (recommended)" ; then
+            xchat &
+            sleep 25
+            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}"
+            xchat -e -c "msg ${SURGEON_NICK} port:       ${port}"
+            $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you"
+        else
+            $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
+        fi
+    else
+        echo -e $"Please contact ${SURGEON_NICK} for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server"
     fi
 
     # stablish a connection
