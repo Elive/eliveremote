@@ -225,7 +225,7 @@ connection_stablish(){
         fi
 
         if ! ((is_connection_started)) ; then
-            if [[ "$loops" -gt 3 ]] ; then
+            if [[ "$loops" -gt 2 ]] ; then
 
                 kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
 

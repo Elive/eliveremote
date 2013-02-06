@@ -40,30 +40,38 @@ select_connection_waiting(){
 
 
 do_connect(){
-    el_check_variables "port"
+    if ! el_check_variables "port" ; then
+        exit 1
+    fi
 
     el_explain 0 "note: 'Connection refused' can mean that the password is not set in the remote"
     el_explain 0 "to copy files use: __scp -P $port file.png root@localhost:/tmp__"
 
-    # if we can't directly connect, wait and connect
-    if ! ssh -p ${port} root@localhost ; then
-        while true
-        do
-            echo "waiting..."
-            if sudo tail -40 /var/log/auth.log | grep -q eliveremote ; then
-                # remote should be ready, connect now
-                ssh -p ${port} root@localhost
+    ssh -p ${port} root@localhost
 
-                break
-            fi
-            sleep 2
-        done
-    fi
+
+    # if we can't directly connect, wait and connect
+    #if ! ssh -p ${port} root@localhost ; then
+        #while true
+        #do
+            #echo "waiting..."
+            #if sudo tail -40 /var/log/auth.log | grep -q eliveremote ; then
+                ## remote should be ready, connect now
+                #ssh -p ${port} root@localhost
+
+                #break
+            #fi
+            #sleep 2
+        #done
+    #fi
 
 }
 
 do_disconnect(){
-    el_check_variables "port"
+    if ! el_check_variables "port" ; then
+        exit 1
+    fi
+
     # get the pid of the listening process and eject it
     pid_connection="$( sudo netstat -puta | grep "localhost:${port}" | grep -v "^tcp6" | tr ' ' '\n' | grep "/sshd:" | sed 's|/sshd:.*$||g' | sort -u | head -1  )"
 
@@ -187,7 +195,10 @@ main(){
     if ((do_connect)) ; then
         select_connection_waiting
         do_connect
-        #do_disconnect
+
+        if el_confirm "disconnect remote user?" ; then
+            do_disconnect
+        fi
     fi
 
     if ((do_disconnect)) ; then
