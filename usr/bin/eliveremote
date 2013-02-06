@@ -105,7 +105,7 @@ connection_check(){
     # }}}
     # check connection with surgeon {{{
 
-    timeout 25 ssh -q -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
+    timeout 25 ssh -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
     returned_status="$?"
     case $returned_status in
 
