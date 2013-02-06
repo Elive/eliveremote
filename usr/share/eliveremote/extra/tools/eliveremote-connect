@@ -9,7 +9,7 @@ usage(){
 
 Options:
   -p, --port        set the port to use
-  -c, --connect     connect to remove
+  -c, --connect     connect to remote
   -d, --disconnect  disconnect the remote
   -l, --list        list waiting connections
 EOF

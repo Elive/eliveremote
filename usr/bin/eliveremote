@@ -121,13 +121,13 @@ connection_check(){
             true
 
             ;;
-        255)
+        255|124|123)
             # ssh is down, returns 255
-            if [[ "$connection_attemps" -gt 3 ]] || grep -q "Connection timed out" "${logs}"  ; then
+            if [[ "$connection_attemps" -gt 2 ]] || grep -q "Connection timed out" "${logs}"  ; then
                 if [[ -n $DISPLAY ]] ; then
-                    $guitool --error --text=$"The selected administrator is not available, please select another one"
+                    $guitool --error --text=$"The selected administrator is not reachable or you have problems with your connection"
                 else
-                    echo -e $"The selected administrator is not available, please select another one"
+                    echo -e $"The selected administrator is not reachable or you have problems with your connection"
                 fi
                 main "$@"
                 exit
@@ -148,28 +148,6 @@ connection_check(){
                 # try again
                 ${FUNCNAME}
                 return
-            fi
-
-            ;;
-        124|123)
-            if [[ "$connection_attemps" -gt 3 ]] ; then
-
-                if [[ -n $DISPLAY ]] ; then
-                    $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
-                else
-                    echo -e $"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
-                fi
-
-                exit
-
-            else
-                # increment attempt
-                connection_attemps="$(( $connection_attemps + 1 ))"
-                el_explain 0 "trying again..."
-                sleep 3
-                ${FUNCNAME}
-                return
-
             fi
 
             ;;
