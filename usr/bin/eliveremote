@@ -12,6 +12,7 @@ trap "cleanups 1 INT ; exit" INT
 trap "cleanups 1 ERR ; exit" ERR
 
 logs="/tmp/.$(basename $0)-${USER}-logs.txt"
+connection_attemps=0
 
 #===  FUNCTION  ================================================================
 #          NAME:  cleanups
@@ -83,6 +84,10 @@ port_verify(){
         return 1
     fi
 
+    if grep -q "Connection timed out" "${file}"  ; then
+        el_error "timeout trying to connect"
+    fi
+
     is_port_accepted=1
 }
 #===  FUNCTION  ================================================================
@@ -118,13 +123,31 @@ connection_check(){
             ;;
         255)
             # ssh is down, returns 255
-            if [[ -n $DISPLAY ]] ; then
-                $guitool --error --text=$"The selected administrator is not available, please select another one"
+            if [[ "$connection_attemps" -gt 3 ]] || grep -q "Connection timed out" "${logs}"  ; then
+                if [[ -n $DISPLAY ]] ; then
+                    $guitool --error --text=$"The selected administrator is not available, please select another one"
+                else
+                    echo -e $"The selected administrator is not available, please select another one"
+                fi
+                main "$@"
+                exit
+
             else
-                echo -e $"The selected administrator is not available, please select another one"
+                # increment attempt
+                connection_attemps="$(( $connection_attemps + 1 ))"
+                sleep 4
+
+                # increment port, since can be due to a busy port too
+                port_local="$(( $port_local + 1 ))"
+                if [[ "${port_local}" -gt "${port_local_max}" ]] ; then
+                    el_error "reached maximum port available, exiting..."
+                    exit 1
+                fi
+
+                # try again
+                ${FUNCNAME}
+                break
             fi
-            main "$@"
-            exit
 
             ;;
         124|123)
@@ -191,12 +214,10 @@ connection_stablish(){
         if ! ((is_connection_started)) ; then
             if [[ "$loops" -gt 3 ]] ; then
 
-                is_connection_started=1
-
-                el_explain 0 "using port __${port_local}__"
-
                 kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
 
+                el_explain 0 "using port __${port_local}__"
+                is_connection_started=1
 
                 # share your connection info {{{
 
@@ -372,7 +393,7 @@ main(){
 
     if [[ -n "$DISPLAY" ]] ; then
         { sleep 1 ; echo 10 ; sleep 1000 ; } \
-            | $guitool --progress --text=$"Connecting, please wait..." --pulsate &
+            | $guitool --progress --auto-kill --text=$"Connecting, please wait..." --pulsate &
         pid_progress=$!
     fi
 

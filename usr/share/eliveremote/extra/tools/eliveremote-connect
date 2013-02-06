@@ -11,15 +11,32 @@ Options:
   -p, --port        set the port to use
   -c, --connect     connect to remove
   -d, --disconnect  disconnect the remote
+  -l, --list        list waiting connections
 EOF
     exit
 }
+
+select_connection_waiting(){
+    local list
+    list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
+    # for tests purposes:
+    #list="$( echo -e "localhost:2051\nlocalhost:2052" )"
+
+    # pick one, multiple connections
+    if [[ "$( echo "$list" | wc -l )" -gt 1 ]] ; then
+        port="$( echo -e "${list}" | sed -e 's|localhost:||g' | zenity --list --text="Select one of the waiting ports" --column="Port" )"
+    fi
+
+    port="${list##*:}"
+
+}
+
 
 do_connect(){
     el_check_variables "port"
 
     el_explain 0 "note: 'Connection refused' can mean that the password is not set in the remote"
-    el_explain 0 "to copy files use: __scp -P $port root@localhost:/tmp__"
+    el_explain 0 "to copy files use: __scp -P $port file.png root@localhost:/tmp__"
 
     # if we can't directly connect, wait and connect
     if ! ssh -p ${port} root@localhost ; then
@@ -35,9 +52,6 @@ do_connect(){
             sleep 2
         done
     fi
-
-    # disconnect
-    do_disconnect
 
 }
 
@@ -59,11 +73,7 @@ main(){
 
     # Usage
     if [[ -z "${1}" ]] ; then
-        echo -e "Usage: $(basename $BASH_SOURCE) option, where:"
-        echo -e "-c --connect"
-        echo -e "-d --disconnect"
-        echo -e "-p --port"
-        exit 1
+        usage
     fi
 
     # copy the tool to the home of the user
@@ -82,7 +92,7 @@ main(){
 
     # option string, for short options.
     # very much like getopts, any option followed by a ':' takes a required arg
-    optstring=p:hcd
+    optstring=p:hcdl
 
     # iterate over options, breaking -ab into -a -b and --foo=bar into --foo bar
     # also turns -- into --endopts to avoid issues with things like '-o-', the '-'
@@ -138,6 +148,9 @@ main(){
             -d|--disconnect)
                 do_disconnect=1
                 ;;
+            -l|--list)
+                do_list=1
+                ;;
             --endopts) shift; break
                 ;;
             *) echo "invalid option: $1" 1>&2 ; exit
@@ -151,13 +164,21 @@ main(){
 
     # - args }}}
 
-    : ${port="2048"}
+    #: ${port="2048"}
+
+    if ((do_list)) ; then
+        select_connection_waiting
+        el_explain 0 "available connection in port  XX${port}XX"
+    fi
 
     if ((do_connect)) ; then
+        select_connection_waiting
         do_connect
+        #do_disconnect
     fi
 
     if ((do_disconnect)) ; then
+        select_connection_waiting
         do_disconnect
     fi
 
