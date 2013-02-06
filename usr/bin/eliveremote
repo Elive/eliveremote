@@ -112,8 +112,8 @@ connection_check(){
         1)
             if ! ((is_port_accepted)) ; then
                 if ! port_verify "${logs}" ; then
-                    # break because we already enter again
-                    break
+                    # we already enter again
+                    return
                 fi
             fi
 
@@ -146,7 +146,7 @@ connection_check(){
 
                 # try again
                 ${FUNCNAME}
-                break
+                return
             fi
 
             ;;
@@ -206,8 +206,8 @@ connection_stablish(){
         # try with another port if this one not works
         if ! ((is_port_accepted)) ; then
             if ! port_verify "${logs}" ; then
-                # break because we already enter again
-                break
+                # we already enter again
+                return
             fi
         fi
 

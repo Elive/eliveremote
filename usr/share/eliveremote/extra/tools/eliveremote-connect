@@ -18,6 +18,13 @@ EOF
 
 select_connection_waiting(){
     local list
+
+    if [[ -n "$port" ]] ; then
+        # not needed to list, we forced the use of a specific port
+        return
+    fi
+
+
     list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
     # for tests purposes:
     #list="$( echo -e "localhost:2051\nlocalhost:2052" )"
