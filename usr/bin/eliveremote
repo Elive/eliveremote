@@ -7,7 +7,7 @@ trap "cleanups 1 SIGHUP ; exit" SIGHUP
 trap "cleanups 1 KILL ; exit" KILL
 trap "cleanups 1 QUIT ; exit" QUIT
 trap "cleanups 1 TERM ; exit" TERM
-#trap "cleanups 1 EXIT" EXIT
+trap "cleanups 1 EXIT ; exit" EXIT
 trap "cleanups 1 INT ; exit" INT
 trap "cleanups 1 ERR ; exit" ERR
 
@@ -135,6 +135,7 @@ connection_check(){
             else
                 # increment attempt
                 connection_attemps="$(( $connection_attemps + 1 ))"
+                el_explain 0 "trying again..."
                 sleep 4
 
                 # increment port, since can be due to a busy port too
@@ -151,13 +152,25 @@ connection_check(){
 
             ;;
         124|123)
-            if [[ -n $DISPLAY ]] ; then
-                $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
-            else
-                echo -e $"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
-            fi
+            if [[ "$connection_attemps" -gt 3 ]] ; then
 
-            exit
+                if [[ -n $DISPLAY ]] ; then
+                    $guitool --error --text=$"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+                else
+                    echo -e $"Seems like we was unable to check the connectivity, is your connection to internet enough stable? Please try again"
+                fi
+
+                exit
+
+            else
+                # increment attempt
+                connection_attemps="$(( $connection_attemps + 1 ))"
+                el_explain 0 "trying again..."
+                sleep 3
+                ${FUNCNAME}
+                return
+
+            fi
 
             ;;
         *)
@@ -401,7 +414,6 @@ main(){
     connection_check
 
     connection_stablish
-
 
     cleanups
 }

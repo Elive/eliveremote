@@ -175,7 +175,13 @@ main(){
 
     if ((do_list)) ; then
         select_connection_waiting
-        el_explain 0 "available connection in port  XX${port}XX"
+
+        if [[ -n "$port" ]] ; then
+            el_explain 0 "available connection in port  XX${port}XX"
+        else
+            el_explain 0 "nobody found"
+        fi
+
     fi
 
     if ((do_connect)) ; then
