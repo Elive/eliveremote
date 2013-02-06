@@ -209,7 +209,7 @@ connection_stablish(){
 
     # }}}
 
-    timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -T -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
+    timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
     pid_connection="$!"
 
     while true
