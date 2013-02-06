@@ -237,7 +237,7 @@ connection_stablish(){
                         xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
                         $guitool --info --text=$"Information sent in a private message to ${SURGEON_NICK} on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually"
                     else
-                        $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password in a private chat (right click)"
+                        $guitool --info --text=$"Please open your chat application (second icon of your dock bar) and contact ${SURGEON_NICK}. Tell him your root password and the port number '${port}' in a private chat (right click on him)"
                     fi
                 else
                     echo -e $"Please contact ${SURGEON_NICK} for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server"
