@@ -25,7 +25,14 @@ select_connection_waiting(){
     fi
 
 
+    while true
+    do
     list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
+	[[ -n "$list" ]] && break
+
+	echo -ne "Waiting...   "
+	sleep 2
+    done
     # for tests purposes:
     #list="$( echo -e "localhost:2051\nlocalhost:2052" )"
 
@@ -45,10 +52,10 @@ do_connect(){
     fi
 
     el_explain 0 "note: 'Connection refused' can mean that the password is not set in the remote"
-    el_explain 0 "to copy files use: __scp -P $port file.png root@localhost:/tmp__"
+    el_explain 0 "to copy files use: __scp -P $port file.png ${remote_user}@localhost:/tmp__"
 
     rm -f "${HOME}/.ssh/known_hosts"
-    ssh -p ${port} root@localhost
+    ssh -p ${port} ${sshopts} ${remote_user}@localhost
 
 
     # if we can't directly connect, wait and connect
@@ -108,7 +115,7 @@ main(){
 
     # option string, for short options.
     # very much like getopts, any option followed by a ':' takes a required arg
-    optstring=p:hcdl
+    optstring=p:u:hcdlY
 
     # iterate over options, breaking -ab into -a -b and --foo=bar into --foo bar
     # also turns -- into --endopts to avoid issues with things like '-o-', the '-'
@@ -156,7 +163,7 @@ main(){
                 ;;
             -p|--port)
                 port="$2"
-                shift 2
+                shift 1
                 ;;
             -c|--connect)
                 do_connect=1
@@ -166,6 +173,15 @@ main(){
                 ;;
             -l|--list)
                 do_list=1
+		;;
+	    -Y|--x11-access)
+		sshopts="-Y $sshopts"
+		# remove extra leading blank chars
+		read -r sshopts <<< "$sshopts"
+                ;;
+	    -u|--user)
+		remote_user="$2"
+		shift 1
                 ;;
             --endopts) shift; break
                 ;;
@@ -181,6 +197,7 @@ main(){
     # - args }}}
 
     #: ${port="2048"}
+    : ${remote_user="root"}
 
     if ((do_list)) ; then
         select_connection_waiting
