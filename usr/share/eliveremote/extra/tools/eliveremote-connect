@@ -30,7 +30,7 @@ select_connection_waiting(){
     list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
 	[[ -n "$list" ]] && break
 
-	echo -ne "Waiting...   "
+	echo -ne "\rWaiting...   "
 	sleep 2
     done
     # for tests purposes:
