@@ -55,6 +55,8 @@ do_connect(){
     el_explain 0 "to copy files use: __scp -P $port file.png ${remote_user}@localhost:/tmp__"
 
     rm -f "${HOME}/.ssh/known_hosts"
+    el_speak_text "connection ready"
+
     ssh -p ${port} ${sshopts} ${remote_user}@localhost
 
 
