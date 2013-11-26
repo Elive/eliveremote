@@ -189,6 +189,7 @@ connection_stablish(){
 
     # }}}
 
+    echo -e "Using command:  ssh -o StrictHostKeyChecking=no -i \"${profile_d}/id_rsa\" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
     timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
     pid_connection="$!"
 
@@ -286,6 +287,20 @@ main(){
     # pre {{{
     local guitool surgeon line result profile_d returned_status pass_root
 
+    # Usage
+    case $1 in
+	-h|--help)
+	    echo -e "Usage: $(basename $BASH_SOURCE) [-p port]"
+	    exit 1
+	    ;;
+	-p)
+	    port_local="$2"
+	    shift 2
+	    ;;
+    esac
+
+
+
     guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
 
     if ! el_dependencies_check "zenity,psort,sshd" ; then
@@ -310,7 +325,11 @@ main(){
     # }}}
     port_local_min="2048"
     port_local_max="2068"
-    port_local="${port_local_min}"
+
+    if [[ -z "$port_local" ]] ; then
+	port_local="${port_local_min}"
+    fi
+
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
