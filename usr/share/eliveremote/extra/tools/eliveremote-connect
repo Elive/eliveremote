@@ -1,5 +1,12 @@
 #!/bin/bash
 source /usr/lib/elive-tools/functions
+#
+# XXX HOWTO: XXX
+#
+# To be a surgeon:
+# - create an user in your system, make sure that his login is set to /bin/false in /etc/passwd, something like:  "eliveremote:x:1002:1002:Random,,,:/home/eliveremote:/bin/false", otherwise people could connect to your computer
+# - "su eliveremote" and create a ssh key, add the PRIVATE (yes, private) key to this package so people can stablish a connection to you
+# - thats all, this package should include that private key so you can connect to the users, the connection is stablished to you without login and that opens a reverse tunnel so you can connect to his computer, in fact is teh same as do a simple ssh but you avoid all the f*cking lose of time explaining to the users how to open a port
 
 
 # Usage
