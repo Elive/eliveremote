@@ -19,6 +19,7 @@ Options:
   -c, --connect     connect to remote
   -d, --disconnect  disconnect the remote
   -l, --list        list waiting connections
+  -Y                with X11 access to your computer
 EOF
     exit
 }
@@ -34,11 +35,11 @@ select_connection_waiting(){
 
     while true
     do
-    list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
-	[[ -n "$list" ]] && break
+        list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
+        [[ -n "$list" ]] && break
 
-	echo -ne "\rWaiting...   "
-	sleep 2
+        echo -ne "\rWaiting...   "
+        sleep 2
     done
     # for tests purposes:
     #list="$( echo -e "localhost:2051\nlocalhost:2052" )"
@@ -64,6 +65,7 @@ do_connect(){
     rm -f "${HOME}/.ssh/known_hosts"
     el_speak_text "connection ready"
 
+    el_explain 0 "ssh -p ${port} ${sshopts} ${remote_user}@localhost"
     ssh -p ${port} ${sshopts} ${remote_user}@localhost
 
 
