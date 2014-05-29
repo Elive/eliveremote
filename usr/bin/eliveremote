@@ -229,6 +229,7 @@ connection_stablish(){
                         sleep 60
                         xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
                         xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
+                        xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
 
 
                         local translated_message
@@ -285,7 +286,7 @@ connection_stablish(){
 
 main(){
     # pre {{{
-    local guitool surgeon line result profile_d returned_status pass_root
+    local guitool surgeon line result profile_d returned_status
 
     # Usage
     case $1 in
@@ -330,13 +331,12 @@ main(){
         port_local="${port_local_min}"
     fi
 
-
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text="$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now." )\n$( eval_gettext "Do you want to continue?" )" || exit
+        $guitool --question --text="$( eval_gettext "This tool allows you to have remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )\n$( eval_gettext "Do you want to continue?" )" || exit
     else
-        echo -e "$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer, continue only if this is what you want to do and the developer told you to run this tool now." )"
-        echo -e "Press ^C if you want to exit now"
+        echo -e "$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )"
+        echo -e "Press ^C (control + c) if you want to exit now"
     fi
 
 
@@ -373,7 +373,7 @@ main(){
 
         if [[ -n "$DISPLAY" ]] ; then
 
-            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it for be able to connect" )" || echo cancel )"
+            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it to be able to connect" )" || echo cancel )"
             # verify
             if [[ "${result}" = "cancel" ]] || [[ -z "$result" ]] ; then
                 $guitool --error --text="$( eval_gettext "We cannot connect to your computer if we don't know the password to use" )"
@@ -396,7 +396,15 @@ main(){
 
 
 
+
     # - check if ssh is set up }}}
+    # ask for email too, just in case {{{
+    result="$( $guitool --question --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email." )" )"
+    if [[ "$result" = *@* ]] ; then
+        user_email="$result"
+    fi
+
+    # }}}
     # internet connection {{{
     if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
