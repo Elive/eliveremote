@@ -443,7 +443,7 @@ main(){
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_POSITION"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --widht=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --width=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
 
 else
     # graphical system not works, only thanatermesis for now, no time to code
