@@ -382,15 +382,20 @@ main(){
             pass_root="$result"
 
         else
-            echo ; echo 'Enter the new password for root (hidden)' ; echo 'You need to give this password to the admin in order to connect' ; echo ; echo ; sudo passwd
+            echo ; echo 'Insert your root (admin) password, we need to know it to be able to connect'
+            read pass_root
         fi
 
         # no ssh running
         if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            for i in 1 2 3 4 5 6
-            do
-                gksu /etc/init.d/ssh start && break
-            done
+            if [[ -n "$DISPLAY" ]] ; then
+                for i in 1 2 3 4 5 6
+                do
+                    gksu /etc/init.d/ssh start && break
+                done
+            else
+                el_sudo /etc/init.d/ssh restart
+            fi
         fi
     fi
 
