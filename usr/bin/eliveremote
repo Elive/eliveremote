@@ -107,7 +107,8 @@ connection_check(){
     # }}}
     # check connection with surgeon {{{
 
-    timeout 25 ssh -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
+    el_debug "ssh -o ConnectTimeout 20 StrictHostKeyChecking=no -i \"${profile_d}/id_rsa\" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
+    ssh -o ConnectTimeout 20 -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
     returned_status="$?"
     case $returned_status in
 
@@ -335,8 +336,12 @@ main(){
     if [[ -n $DISPLAY ]] ; then
         $guitool --question --text="$( eval_gettext "This tool allows you to have remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )\n$( eval_gettext "Do you want to continue?" )" || exit
     else
-        echo -e "$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )"
-        echo -e "Press ^C (control + c) if you want to exit now"
+        echo -e "$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer." )"
+
+        if ! el_confirm "Do you want to continue?" ; then
+            echo -e "Ok, bye"
+            exit
+        fi
     fi
 
 
