@@ -214,7 +214,7 @@ connection_stablish(){
 
     while true
     do
-        sleep 6
+        sleep 1
 
         # try with another port if this one not works
         if ! ((is_port_accepted)) ; then
@@ -242,21 +242,33 @@ connection_stablish(){
                     fi
 
                     # automatic mode
-                    if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
-                        xchat &
-                        # wait an entire minute for a successful connection, just in case that less is not enough
-                        sleep 60
-                        xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
-                        xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
-                        xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
+                    if [[ "$UID" != 0 ]] ; then
+                        if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
+                            xchat &
+                            # wait an entire minute for a successful connection, just in case that less is not enough
+                            sleep 60
+                            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
+                            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
+                            xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
 
 
-                        local translated_message
-                        translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually" )" "$SURGEON_NICK" )"
+                            local translated_message
+                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually" )" "$SURGEON_NICK" )"
 
-                        $guitool --info --text="$translated_message"
-
+                            $guitool --info --text="$translated_message"
+                        fi
                     else
+                        if grep -q "boot=live" /proc/cmdline ; then
+                            if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
+                                su -c "xchat" eliveuser &
+                                # wait an entire minute for a successful connection, just in case that less is not enough
+                                sleep 60
+                                xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
+                                xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
+                                xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
+                            fi
+                        fi
+
 
                         local translated_message
                         translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon of your dock bar) and contact %s. Tell him your root password and the port number '%s' in a private chat (right click on him)" )" "$SURGEON_NICK" "$port" )"
@@ -299,6 +311,7 @@ connection_stablish(){
         fi
 
         loops="$(( $loops + 1 ))"
+        sleep 5
     done
 }
 
@@ -328,7 +341,7 @@ main(){
 
         # verify that ssh is running
         if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+            if grep -q "boot=live" /proc/cmdline ; then
                 sudo /etc/init.d/ssh start
             else
                 if [[ -n "$DISPLAY" ]] ; then
@@ -364,7 +377,7 @@ main(){
 
 
     # we are in live mode: reconfigure root pass
-    if [[ -d /live ]] || grep -q "boot=live" /proc/cmdline ; then
+    if grep -q "boot=live" /proc/cmdline ; then
         #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
