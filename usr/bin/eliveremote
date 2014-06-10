@@ -5,13 +5,15 @@ source /usr/lib/elive-tools/functions
 TEXTDOMAIN="eliveremote"
 export TEXTDOMAIN
 
-trap "cleanups 1 SIGHUP ; exit" SIGHUP
-trap "cleanups 1 KILL ; exit" KILL
-trap "cleanups 1 QUIT ; exit" QUIT
-trap "cleanups 1 TERM ; exit" TERM
-trap "cleanups 1 EXIT ; exit" EXIT
-trap "cleanups 1 INT ; exit" INT
-trap "cleanups 1 ERR ; exit" ERR
+set -E
+trap "cleanups 1 ; exit" 1 2 6 9 11 13 14 15
+#trap "cleanups 1 SIGHUP ; exit" SIGHUP
+#trap "cleanups 1 KILL ; exit" KILL
+#trap "cleanups 1 QUIT ; exit" QUIT
+#trap "cleanups 1 TERM ; exit" TERM
+#trap "cleanups 1 EXIT ; exit" EXIT
+#trap "cleanups 1 INT ; exit" INT
+#trap "cleanups 1 ERR ; exit" ERR
 
 logs="/tmp/.$(basename $0)-${USER}-logs.txt"
 connection_attemps=0
@@ -25,6 +27,9 @@ cleanups(){
     el_debug "$@"
 
     # }}}
+
+    killall zenity
+
     # remove existing connection
     if [[ -n "$pid_connection" ]] ; then
         kill "$pid_connection" 2>/dev/null || kill -9 "${pid_connection}" 2>/dev/null
@@ -334,7 +339,7 @@ main(){
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text="$( eval_gettext "This tool allows you to have remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )\n$( eval_gettext "Do you want to continue?" )" || exit
+        $guitool --question --text="$( eval_gettext "This tool allows you to have remote assistance from an Elive developer in a secure way, giving him access to your computer. Continue?" )" || exit
     else
         echo -e "$( eval_gettext "This tool gives you remote assistance from an Elive developer in a secure way, giving him access to your computer." )"
 
@@ -408,7 +413,7 @@ main(){
     # - check if ssh is set up }}}
     # ask for email too, just in case {{{
     if [[ -n "$DISPLAY" ]] ; then
-        result="$( $guitool --question --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email." )" )"
+        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email." )" )"
         if [[ "$result" = *@* ]] ; then
             user_email="$result"
         fi
@@ -438,7 +443,7 @@ main(){
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_POSITION"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --widht=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
 
 else
     # graphical system not works, only thanatermesis for now, no time to code
