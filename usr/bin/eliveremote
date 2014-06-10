@@ -112,8 +112,15 @@ connection_check(){
     # }}}
     # check connection with surgeon {{{
 
-    el_debug "ssh -o ConnectTimeout 20 StrictHostKeyChecking=no -i \"${profile_d}/id_rsa\" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
-    ssh -o ConnectTimeout 20 -o StrictHostKeyChecking=no -i "${profile_d}/id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
+    #copy key to user home or we will have an error
+    mkdir -p "$HOME/.ssh"
+    cp -f "${profile_d}/id_rsa" "$HOME/.ssh/eliveremote-id_rsa"
+    chmod 0400 "$HOME/.ssh/eliveremote-id_rsa"
+    chmod 0700 "$HOME/.ssh"
+
+
+    el_debug "ssh -o ConnectTimeout=20 StrictHostKeyChecking=no -i \"${HOME}/.ssh/eliveremote-id_rsa\" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
+    ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no -i "${HOME}/.ssh/eliveremote-id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
     returned_status="$?"
     case $returned_status in
 
@@ -137,7 +144,7 @@ connection_check(){
                 else
                     echo -e "$( eval_gettext "The selected administrator is not reachable or you have problems with your connection" )"
                 fi
-                main "$@"
+                #main "$@"
                 exit
 
             else
@@ -195,8 +202,14 @@ connection_stablish(){
 
     # }}}
 
-    echo -e "Using command:  ssh -o StrictHostKeyChecking=no -i \"${profile_d}/id_rsa\" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
-    timeout 43200 ssh -o StrictHostKeyChecking=no -i ${profile_d}/id_rsa -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
+    #copy key to user home or we will have an error
+    mkdir -p "$HOME/.ssh"
+    cp -f "${profile_d}/id_rsa" "$HOME/.ssh/eliveremote-id_rsa"
+    chmod 0400 "$HOME/.ssh/eliveremote-id_rsa"
+    chmod 0700 "$HOME/.ssh"
+
+    echo -e "Using command:  ssh -o ConnectionTimeout=40 -o StrictHostKeyChecking=no -i \"${HOME}/.ssh/eliveremote-id_rsa\" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
+    ssh -o ConnectTimeout=40 -o StrictHostKeyChecking=no -i "${HOME}/.ssh/eliveremote-id_rsa" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
     pid_connection="$!"
 
     while true
