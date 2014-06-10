@@ -361,7 +361,8 @@ main(){
             fi
 
         else
-            echo ; echo 'Enter the new password for root (hidden)' ; echo 'You need to give this password to the admin in order to connect' ; echo ; echo ; sudo passwd
+            echo ; echo 'Enter the new password for root (hidden)' ; echo 'You need to give this password to the admin in order to connect' ; echo ; echo
+            sudo passwd
         fi
 
         # no ssh running
@@ -381,9 +382,6 @@ main(){
             fi
             pass_root="$result"
 
-        else
-            echo ; echo 'Insert your root (admin) password, we need to know it to be able to connect'
-            read pass_root
         fi
 
         # no ssh running
@@ -404,9 +402,11 @@ main(){
 
     # - check if ssh is set up }}}
     # ask for email too, just in case {{{
-    result="$( $guitool --question --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email." )" )"
-    if [[ "$result" = *@* ]] ; then
-        user_email="$result"
+    if [[ -n "$DISPLAY" ]] ; then
+        result="$( $guitool --question --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email." )" )"
+        if [[ "$result" = *@* ]] ; then
+            user_email="$result"
+        fi
     fi
 
     # }}}
@@ -436,7 +436,7 @@ main(){
     done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
 
 else
-    # graphical system not works, only thanatermesis for now
+    # graphical system not works, only thanatermesis for now, no time to code
     result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
 fi
 
