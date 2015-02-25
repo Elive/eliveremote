@@ -140,9 +140,9 @@ connection_check(){
             # ssh is down, returns 255
             if [[ "$connection_attemps" -gt 2 ]] || grep -q "Connection timed out" "${logs}"  ; then
                 if [[ -n $DISPLAY ]] ; then
-                    $guitool --error --text="$( eval_gettext "The selected administrator is not reachable or you have problems with your connection" )"
+                    $guitool --error --text="$( eval_gettext "The selected administrator is not reachable or has problems with the connection." )"
                 else
-                    echo -e "$( eval_gettext "The selected administrator is not reachable or you have problems with your connection" )"
+                    echo -e "$( eval_gettext "The selected administrator is not reachable or has problems with the connection." )"
                 fi
                 #main "$@"
                 exit
@@ -397,7 +397,10 @@ main(){
             fi
 
         else
-            echo ; echo 'Enter the new password for root (hidden)' ; echo 'You need to give this password to the admin in order to connect' ; echo ; echo
+            local message_type_root_pass
+            message_type_root_pass="$( printf "$( eval_gettext "Enter the new password for root (admin), what you type is hidden:" )" "" )"
+            local message_type_root_pass_details
+
             sudo passwd
         fi
 
@@ -469,11 +472,12 @@ main(){
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_POSITION"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "thanatermesis" )" | $guitool --list --width=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
 
 else
     # graphical system not works, only thanatermesis for now, no time to code
-    result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+    #result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+    result="/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh"
 fi
 
 if [[ "${result}" = "cancel" ]] ; then
