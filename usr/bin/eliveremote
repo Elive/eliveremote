@@ -286,9 +286,9 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --info --text="$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application" )"
+                    $guitool --info --text="$( eval_gettext "Do not close this window until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
                 else
-                    echo -e "$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application" )"
+                    echo -e "$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application." )"
                 fi
 
 
@@ -472,7 +472,7 @@ main(){
         echo "$SURGEON_NICK"
         echo "$SURGEON_NAME"
         echo "$SURGEON_POSITION"
-    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=470 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+    done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=540 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
 
 else
     # graphical system not works, only thanatermesis for now, no time to code
