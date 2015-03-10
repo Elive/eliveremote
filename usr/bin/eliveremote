@@ -286,7 +286,7 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --info --text="$( eval_gettext "Do not close this window until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
+                    $guitool --warning --text="$( eval_gettext "Do not close this window until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
                 else
                     echo -e "$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application." )"
                 fi
