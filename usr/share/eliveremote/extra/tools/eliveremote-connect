@@ -21,7 +21,9 @@ Options:
   -l, --list        list waiting connections
   -Y                with X11 access to your computer
 
-Note: if you are a surgeon in the server (useful for when you cannot open your ports too), do a ssh to the server and from it do another ssh to something like: ssh -p 2048 eliveuser@localhost
+Note: if you are a surgeon in the server (useful for when you cannot open your own ports), do:
+- ssh to the server (ewp?), then:
+- ssh -p 2048 root@localhost
 EOF
     exit
 }
