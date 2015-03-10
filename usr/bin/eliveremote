@@ -271,7 +271,7 @@ connection_stablish(){
 
 
                         local translated_message
-                        translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon of your dock bar) and contact %s. Tell him your root password and the port number '%s' in a private chat (right click on him)" )" "$SURGEON_NICK" "$port" )"
+                        translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon of your dock bar) and contact %s. Tell him your root password and the port number '%s' in a private chat (right click on him)" )" "$SURGEON_NICK" "$port_local" )"
 
                         $guitool --info --text="$translated_message"
                     fi
