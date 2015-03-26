@@ -110,6 +110,13 @@ connection_check(){
     el_check_variables "port_local"
 
     # }}}
+    # enable ssh with plain passwords {{{
+    # this is disabled by default in live mode, enable it:
+
+    if grep -q "boot=live" /proc/cmdline ; then
+        sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+    fi
+    # - enable ssh with plain passwords }}}
     # check connection with surgeon {{{
 
     #copy key to user home or we will have an error
