@@ -110,13 +110,6 @@ connection_check(){
     el_check_variables "port_local"
 
     # }}}
-    # enable ssh with plain passwords {{{
-    # this is disabled by default in live mode, enable it:
-
-    if grep -q "boot=live" /proc/cmdline ; then
-        sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
-    fi
-    # - enable ssh with plain passwords }}}
     # check connection with surgeon {{{
 
     #copy key to user home or we will have an error
@@ -265,7 +258,7 @@ connection_stablish(){
                             $guitool --info --text="$translated_message"
                         fi
                     else
-                        if grep -q "boot=live" /proc/cmdline ; then
+                        if ((is_mode_live)) ; then
                             if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
                                 su -c "xchat" eliveuser &
                                 # wait an entire minute for a successful connection, just in case that less is not enough
@@ -348,8 +341,15 @@ main(){
 
         # verify that ssh is running
         if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            if grep -q "boot=live" /proc/cmdline ; then
-                sudo /etc/init.d/ssh start
+            if ((is_mode_live)) ; then
+                # enable ssh with plain passwords {{{
+                # this is disabled by default in live mode, enable it:
+
+                if ((is_mode_live)) ; then
+                    sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+                fi
+                # - enable ssh with plain passwords }}}
+                sudo /etc/init.d/ssh restart
             else
                 if [[ -n "$DISPLAY" ]] ; then
                     gksu /etc/init.d/ssh start
@@ -360,6 +360,10 @@ main(){
         fi
     fi
 
+
+    if grep -q "boot=live" /proc/cmdline ; then
+        is_mode_live=1
+    fi
 
 
     # }}}
