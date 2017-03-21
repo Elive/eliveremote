@@ -290,11 +290,17 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --warning --text="$( eval_gettext "Do not close this window until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
+                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
                 else
                     echo -e "$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application." )"
                 fi
 
+                sleep 5
+                if $guitool --question --text="$( eval_gettext "Do you want to see what is happening remotely?" )" ; then
+                    if $guitool --question --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window first, and do not close it until the remote assistance finished. Somebody is working from it, so do not type on it or you will make his work more difficult." )" ; then
+                        gksu "urxvt -e bash -c 'tmux attach'"
+                    fi
+                fi
 
 
                 # - share your connection info }}}
