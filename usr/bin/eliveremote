@@ -247,9 +247,10 @@ connection_stablish(){
                             xchat &
                             # wait an entire minute for a successful connection, just in case that less is not enough
                             sleep 60
-                            xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
-                            xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
-                            xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
+                            xchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
+                            xchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
+                            xchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
+                            xchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
 
 
                             local translated_message
@@ -263,9 +264,10 @@ connection_stablish(){
                                 su -c "xchat" eliveuser &
                                 # wait an entire minute for a successful connection, just in case that less is not enough
                                 sleep 60
-                                xchat -e -c "msg ${SURGEON_NICK} root pass:  ${pass_root}" &
-                                xchat -e -c "msg ${SURGEON_NICK} port:       ${port_local}" &
-                                xchat -e -c "msg ${SURGEON_NICK} email:      ${user_email}" &
+                                xchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
+                                xchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
+                                xchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
+                                xchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
                             fi
                         fi
 
