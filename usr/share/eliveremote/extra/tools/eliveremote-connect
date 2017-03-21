@@ -1,6 +1,14 @@
 #!/bin/bash
 source /usr/lib/elive-tools/functions
 #
+# HOW to connect:
+# the client is connected in reverse mode to us (or the elive server) but not with a login (like a paused connection), so first you need to be in the place where he is connected (your computer? the elive server?), and then connect from it to him, like:
+#
+#  $ ssh -Y elivewp@hostdo1.elivecd.org         # connect to a user in the server where he is connected (don't needs to be eliveremote)
+#  $ ssh -Y -p 2048 root@locahost               # connect to the client user
+
+# UPDATE: seems like we had an eliveremote in hostdo1 !
+#
 # XXX HOWTO: XXX
 #
 # To be a surgeon:
