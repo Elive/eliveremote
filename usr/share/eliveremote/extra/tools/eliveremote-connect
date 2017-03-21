@@ -6,8 +6,9 @@ source /usr/lib/elive-tools/functions
 #
 #  $ ssh -Y elivewp@hostdo1.elivecd.org         # connect to a user in the server where he is connected (don't needs to be eliveremote)
 #  $ ssh -Y -p 2048 root@locahost               # connect to the client user
-
-# UPDATE: seems like we had an eliveremote in hostdo1 !
+#
+#  note: since 'eliveremote-connect' (guided tool for the admins) needs sudo, a good thing is to have automated sudo or to connect as root on the server
+#
 #
 # XXX HOWTO: XXX
 #
