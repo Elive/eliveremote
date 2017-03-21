@@ -338,8 +338,8 @@ main(){
 
     guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
 
-    if ! el_dependencies_check "zenity,psort,sshd" ; then
-        el_dependencies_install "zenity,elive-tools,ssh"
+    if ! el_dependencies_check "zenity,psort,sshd,gksu" ; then
+        el_dependencies_install "zenity,elive-tools,ssh,gksu"
 
         # verify that ssh is running
         if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
