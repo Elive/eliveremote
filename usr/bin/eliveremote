@@ -253,7 +253,7 @@ connection_stablish(){
 
 
                             local translated_message
-                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, please make sure it is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually" )" "$SURGEON_NICK" )"
+                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, please make sure he is connected or he will not receive the info and cannot assist you, note that this message is sent successfully only if the chat was able to connect to the elive room, otherwise try to connect again or do it manually" )" "$SURGEON_NICK" )"
 
                             $guitool --info --text="$translated_message"
                         fi
@@ -484,7 +484,7 @@ main(){
                                 echo "$SURGEON_NICK"
                                 echo "$SURGEON_NAME"
                                 echo "$SURGEON_POSITION"
-                            done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=540 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+                            done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=620 --height=280 --text="$( eval_gettext "Select the person that you want to give access to your computer from the list" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
         else
             result="/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh"
         fi
