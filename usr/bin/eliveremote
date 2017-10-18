@@ -334,6 +334,8 @@ main(){
     # pre {{{
     local guitool surgeon line result profile_d returned_status
 
+    guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
+
     # Usage
     case $1 in
         -h|--help)
@@ -346,38 +348,38 @@ main(){
             ;;
     esac
 
-
-
-    guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
-
     if ! el_dependencies_check "zenity,psort,sshd,gksu" ; then
         el_dependencies_install "zenity,elive-tools,ssh,gksu"
-
-        # verify that ssh is running
-        if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            if ((is_mode_live)) ; then
-                # enable ssh with plain passwords {{{
-                # this is disabled by default in live mode, enable it:
-
-                if ((is_mode_live)) ; then
-                    sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
-                fi
-                # - enable ssh with plain passwords }}}
-                sudo /etc/init.d/ssh restart
-            else
-                if [[ -n "$DISPLAY" ]] ; then
-                    gksu /etc/init.d/ssh start
-                else
-                    el_error "$( eval_gettext "You need to install ssh and have it running first" )"
-                fi
-            fi
-        fi
     fi
-
 
     if grep -q "boot=live" /proc/cmdline ; then
         is_mode_live=1
     fi
+
+
+    # pre }}}
+
+    # live needs to be reconfigured
+    if ((is_mode_live)) ; then
+        sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+        sudo -H sed -i -e 's|^\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+        sudo -H service ssh restart
+    fi
+
+    # verify that ssh is running
+    if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+        if ((is_mode_live)) ; then
+            sudo /etc/init.d/ssh restart
+        else
+            if [[ -n "$DISPLAY" ]] ; then
+                el_dependencies_check "gksu"
+                gksu /etc/init.d/ssh start
+            else
+                el_error "$( eval_gettext "You need to install ssh and have it running first" )"
+            fi
+        fi
+    fi
+
 
 
     # }}}
@@ -402,7 +404,7 @@ main(){
 
 
     # we are in live mode: reconfigure root pass
-    if grep -q "boot=live" /proc/cmdline ; then
+    if ((is_mode_live)) ; then
         #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
