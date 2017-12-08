@@ -301,9 +301,14 @@ connection_stablish(){
 
                 sleep 5
                 if $guitool --question --text="$( eval_gettext "Do you want to see what is happening remotely?" )" ; then
-                    if $guitool --question --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance finished. Somebody is working from it, please do not type in the terminal. Otherwise you will make his work more difficult." )" ; then
-                        gksu "urxvt -e bash -c 'tmux attach'" &
-                    fi
+                    # wait that connection happens
+                    while ! pidof tmux
+                    do
+                        sleep 1
+                    done
+
+                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance finished. Somebody is working from it, please do not type in the terminal. Otherwise you will make his work more difficult." )"
+                    gksu "urxvt -e bash -c 'tmux attach'" &
                 fi
 
 
