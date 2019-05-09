@@ -36,7 +36,7 @@ cleanups(){
     fi
 
     # remove other possible connections
-    if ps aux | grep -v grep | grep -q "ssh -o StrictHostKey" ; then
+    if ps aux | grep -v grep | grep -qE "ssh.*StrictHostKey" ; then
         killall ssh 2>/dev/null
         killall -9 ssh 2>/dev/null
     fi
@@ -119,8 +119,8 @@ connection_check(){
     chmod 0700 "$HOME/.ssh"
 
 
-    el_debug "ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
-    ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
+    el_debug "ssh -p 60022 -o ConnectTimeout=20 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
+    ssh -p 60022 -o ConnectTimeout=20 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -T -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} 2>"${logs}" 1>/dev/null
     returned_status="$?"
     case $returned_status in
 
@@ -208,8 +208,8 @@ connection_stablish(){
     chmod 0400 "$HOME/.ssh/eliveremote-id_rsa"
     chmod 0700 "$HOME/.ssh"
 
-    el_debug "ssh -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
-    ssh -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
+    el_debug "ssh -p 60022 -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS}"
+    ssh -p 60022 -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -N -R ${port_local}:localhost:${SURGEON_PORT} eliveremote@${SURGEON_ADDRESS} >"${logs}" 2>&1  &
     pid_connection="$!"
 
     while true
