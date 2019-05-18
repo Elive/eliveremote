@@ -366,8 +366,11 @@ main(){
 
     # live needs to be reconfigured
     if ((is_mode_live)) ; then
-        sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
-        sudo -H sed -i -e 's|^\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+        #sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+        #sudo -H sed -i -e 's|^\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+        sudo -H sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config"
+        sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
+
         sudo -H service ssh restart
     fi
 
