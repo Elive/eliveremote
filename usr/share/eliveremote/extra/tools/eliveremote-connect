@@ -58,6 +58,10 @@ select_connection_waiting(){
         echo -ne "\rWaiting...   "
         sleep 2
     done
+
+    # notify
+    echo -e "\a"
+
     # for tests purposes:
     #list="$( echo -e "localhost:2051\nlocalhost:2052" )"
 
