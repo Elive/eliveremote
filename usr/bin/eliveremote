@@ -368,10 +368,20 @@ main(){
     if ((is_mode_live)) ; then
         #sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
         #sudo -H sed -i -e 's|^\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
-        sudo -H sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config"
-        sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
+        if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" ; then
+            sudo -H sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config"
+        fi
+        if ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
+            sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
+        fi
 
         sudo -H service ssh restart
+    else
+
+        if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
+            $guitool --error --text="To make this tool working you need to edit your /etc/ssh/sshd_config file and add the options 'PermitRootLogin yes' and 'PasswordAuthentication yes', then restart the ssh service. Then, run again this tool."
+            exit 1
+        fi
     fi
 
     # verify that ssh is running
