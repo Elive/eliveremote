@@ -353,8 +353,8 @@ main(){
             ;;
     esac
 
-    if ! el_dependencies_check "zenity,psort,sshd,gksu" ; then
-        el_dependencies_install "zenity,elive-tools,ssh,gksu"
+    if ! el_dependencies_check "zenity|psort|sshd|gksu" ; then
+        el_dependencies_install "zenity|elive-tools|ssh|gksu"
     fi
 
     if grep -q "boot=live" /proc/cmdline ; then
@@ -512,7 +512,7 @@ main(){
             result="$( while read -ru 3 line
                             do
                                 source "$line"
-                                el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION"
+                                el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION"
 
                                 echo "$line"
                                 echo "$SURGEON_NICK"
@@ -540,7 +540,7 @@ profile_d="${result%/profile.sh}"
 
 source "${profile_d}/profile.sh"
 
-el_check_variables "SURGEON_NAME,SURGEON_NICK,SURGEON_POSITION,SURGEON_ADDRESS,SURGEON_PORT"
+el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION|SURGEON_ADDRESS|SURGEON_PORT"
 
 
 
