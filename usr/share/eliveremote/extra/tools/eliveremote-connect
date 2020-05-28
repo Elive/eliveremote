@@ -46,7 +46,7 @@ select_connection_waiting(){
 
     if [[ -n "$port" ]] ; then
         # not needed to list, we forced the use of a specific port
-        return
+        return 0
     fi
 
 

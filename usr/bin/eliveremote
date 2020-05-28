@@ -58,7 +58,7 @@ port_verify(){
     # pre {{{
     local file
     el_debug
-    el_security_function_loop 22 || return
+    el_security_function_loop 22 || return 0
 
     file="$1"
     el_check_variables "file"
@@ -67,7 +67,7 @@ port_verify(){
         sleep 2
         if ! [[ -e "$file" ]] ; then
             el_explain 0 "file to verify not exist, ignoring verification of port, it should be ok"
-            return
+            return 0
         fi
     fi
 
@@ -105,7 +105,7 @@ connection_check(){
     # pre {{{
     el_debug
 
-    el_security_function_loop 22 || return
+    el_security_function_loop 22 || return 0
 
     el_check_variables "port_local"
 
@@ -128,7 +128,7 @@ connection_check(){
             if ! ((is_port_accepted)) ; then
                 if ! port_verify "${logs}" ; then
                     # we already enter again
-                    return
+                    return 0
                 fi
             fi
 
@@ -162,7 +162,7 @@ connection_check(){
 
                 # try again
                 ${FUNCNAME}
-                return
+                return 0
             fi
 
             ;;
@@ -186,7 +186,7 @@ connection_stablish(){
     # pre {{{
     el_debug
 
-    el_security_function_loop 22 || return
+    el_security_function_loop 22 || return 0
 
     local loops is_connection_started
     loops=0
@@ -220,7 +220,7 @@ connection_stablish(){
         if ! ((is_port_accepted)) ; then
             if ! port_verify "${logs}" ; then
                 # we already enter again
-                return
+                return 0
             fi
         fi
 
