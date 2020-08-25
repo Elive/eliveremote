@@ -258,7 +258,7 @@ connection_stablish(){
 
 
                             local translated_message
-                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, make sure that person is connected or will not receive the info and so then cannot assist you. Note that this message is sent successfully only if the chat was able to connect to the Elive room, otherwise try to connect again or give the info manually" )" "$SURGEON_NICK" )"
+                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, make sure that person is connected or they will not receive the info and so then cannot assist you. Note that this message is sent successfully only if the chat was able to connect to the Elive room, otherwise try to connect again or give the info manually." )" "$SURGEON_NICK" )"
 
                             $guitool --info --text="$translated_message"
                         fi
@@ -279,14 +279,14 @@ connection_stablish(){
 
 
                         local translated_message
-                        translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell him your root password and the port number '%s' in a private chat (right click on him)" )" "$SURGEON_NICK" "$port_local" )"
+                        translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
 
                         $guitool --info --text="$translated_message"
                     fi
                 else
 
                     local translated_message
-                    translated_message="$( printf "$( eval_gettext "Please contact %s for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' for open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server" )" "$SURGEON_NICK" )"
+                    translated_message="$( printf "$( eval_gettext "Please contact %s for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' to open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server" )" "$SURGEON_NICK" )"
 
                     echo -e "$translated_message"
                 fi
@@ -307,7 +307,7 @@ connection_stablish(){
                         sleep 1
                     done
 
-                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance finished. Somebody will be working from it, please do not type in the terminal. Otherwise you will make his work more difficult." )"
+                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance finished. Somebody will be working from it, please do not type in the terminal. Otherwise you will make their work more difficult." )"
                     gksu "urxvt -e bash -c 'tmux attach'" &
                 fi
 
@@ -427,7 +427,7 @@ main(){
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
             #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
-            if $guitool --question --text="$( eval_gettext "You are in livecd mode, do you want to change your default system password to a new one for increase the security of your computer?" )" ; then
+            if $guitool --question --text="$( eval_gettext "You are in LiveCD mode, do you want to change your default system password to a new one for increase the security of your computer?" )" ; then
                 result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" || echo cancel )"
                 # verify
                 if [[ "${result}" = "cancel" ]] ; then
