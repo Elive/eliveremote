@@ -258,7 +258,7 @@ connection_stablish(){
 
 
                             local translated_message
-                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat, make sure that person is connected or they will not receive the info and so then cannot assist you. Note that this message is sent successfully only if the chat was able to connect to the Elive room, otherwise try to connect again or give the info manually." )" "$SURGEON_NICK" )"
+                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat. Make sure that person is connected or the info will not be received to allow for further assistence. Note that this message is only sent successfully if the chat was able to connect to the Elive room, otherwise try to connect again or offer the info manually." )" "$SURGEON_NICK" )"
 
                             $guitool --info --text="$translated_message"
                         fi
@@ -286,7 +286,7 @@ connection_stablish(){
                 else
 
                     local translated_message
-                    translated_message="$( printf "$( eval_gettext "Please contact %s for be able to connect, he needs to know only your root password, you can do it from another computer or you can run 'irssi' to open an IRC chat in console mode, you should enter in the channel #elive of the irc.freenode.net server" )" "$SURGEON_NICK" "$SURGEON_NICK" )"
+                    translated_message="$( printf "$( eval_gettext "Please contact %s to allow a connection as %s needs to know your root password. You can either do it from another computer or you can run 'irssi' to open an IRC chat in console mode and enter the channel #elive of the irc.freenode.net server" )" "$SURGEON_NICK" "$SURGEON_NICK" )"
 
                     echo -e "$translated_message"
                 fi
@@ -294,9 +294,9 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection finishes so you can close this window." )"
+                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates, so you can close this window." )"
                 else
-                    echo -e "$( eval_gettext "The remote user should be now connected, please wait until a message appears about that the connection has finished before to close this application." )"
+                    echo -e "$( eval_gettext "The remote user should now be connected, please wait until a message appears stating the connection has terminated before closing this application." )"
                 fi
 
                 sleep 5
@@ -458,7 +458,7 @@ main(){
 
         if [[ -n "$DISPLAY" ]] ; then
 
-            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it to be able to connect" )" || echo cancel )"
+            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it for the connection." )" || echo cancel )"
             # verify
             if [[ "${result}" = "cancel" ]] || [[ -z "$result" ]] ; then
                 $guitool --error --text="$( eval_gettext "We cannot connect to your computer if we don't know the password" )"
@@ -487,7 +487,7 @@ main(){
     # - check if ssh is set up }}}
     # ask for email too, just in case {{{
     if [[ -n "$DISPLAY" ]] ; then
-        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you in case we would need it, please insert your email if you have any." )" )"
+        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you, if needed. Please insert your email if you have any." )" )"
         if [[ "$result" = *@* ]] ; then
             user_email="$result"
         fi
