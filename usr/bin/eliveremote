@@ -286,7 +286,7 @@ connection_stablish(){
                 else
 
                     local translated_message
-                    translated_message="$( printf "$( eval_gettext "Please contact %s to allow a connection as %s needs to know your root password. You can either do it from another computer or you can run 'irssi' to open an IRC chat in console mode and enter the channel #elive of the irc.freenode.net server" )" "$SURGEON_NICK" "$SURGEON_NICK" )"
+                    translated_message="$( printf "$( eval_gettext "Please contact %s to be able to connect (he needs to know your root password) either from another computer or run 'irssi' to open an IRC chat in console mode. You should log in to the #elive channel on the 'irc.libera.chat' server" )" "$SURGEON_NICK" )"
 
                     echo -e "$translated_message"
                 fi
