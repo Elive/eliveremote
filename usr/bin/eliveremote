@@ -258,7 +258,7 @@ connection_stablish(){
 
 
                             local translated_message
-                            translated_message="$( printf "$( eval_gettext "Information sent in a private message to %s on the IRC chat. Make sure that person is connected or the info will not be received to allow for further assistence. Note that this message is only sent successfully if the chat was able to connect to the Elive room, otherwise try to connect again or offer the info manually." )" "$SURGEON_NICK" )"
+                            translated_message="$( printf "$( eval_gettext "Information is sent in a private message to %s on the IRC chat. Make sure that person is connected or the info will not be received to allow your assistance. Note that this message is only sent successfully if the chat was able to connect to the Elive room, otherwise try to connect again or offer the info manually." )" "$SURGEON_NICK" )"
 
                             $guitool --info --text="$translated_message"
                         fi
@@ -294,7 +294,7 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates, so you can close this window." )"
+                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )"
                 else
                     echo -e "$( eval_gettext "The remote user should now be connected, please wait until a message appears stating the connection has terminated before closing this application." )"
                 fi
@@ -307,7 +307,7 @@ connection_stablish(){
                         sleep 1
                     done
 
-                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise you will make their work more difficult." )"
+                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise, you will make their work more difficult." )"
                     gksu "urxvt -e bash -c 'tmux attach'" &
                 fi
 
@@ -412,7 +412,7 @@ main(){
     if [[ -n $DISPLAY ]] ; then
         $guitool --question --text="$( eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer. Do you want to continue?" )" || exit
     else
-        echo -e "$( eval_gettext "This tool allows remote assistance from an Elive developer in a secure way, giving him access to your computer." )"
+        echo -e "$( eval_gettext "This tool allows remote assistance from an Elive developer in a secure way giving him access to your computer." )"
 
         if ! el_confirm "Do you want to continue?" ; then
             echo -e "Ok, bye"
@@ -427,7 +427,7 @@ main(){
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
             #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
-            if $guitool --question --text="$( eval_gettext "You are in LiveCD mode, do you want to change your default system password to a new one to increase the security of your computer?" )" ; then
+            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer?" )" ; then
                 result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" || echo cancel )"
                 # verify
                 if [[ "${result}" = "cancel" ]] ; then
@@ -497,9 +497,9 @@ main(){
     # internet connection {{{
     if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
-            $guitool --info --text="$( eval_gettext "You need to be connected to the Internet, please connect before continuing" )"
+            $guitool --info --text="$( eval_gettext "You need to be connected to the Internet, please connect now before continuing" )"
         else
-            echo "$( eval_gettext "You need to be connected to the Internet, please connect before continuing" )"
+            echo "$( eval_gettext "You need to be connected to the Internet, please connect now before continuing" )"
             read nada
         fi
     fi
