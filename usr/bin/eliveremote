@@ -487,7 +487,7 @@ main(){
     # - check if ssh is set up }}}
     # ask for email too, just in case {{{
     if [[ -n "$DISPLAY" ]] ; then
-        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you, if needed. Please insert your email if you have any." )" )"
+        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you if needed. Please insert your email if you have any." )" )"
         if [[ "$result" = *@* ]] ; then
             user_email="$result"
         fi
