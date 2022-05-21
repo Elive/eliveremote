@@ -410,7 +410,7 @@ main(){
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text="$( eval_gettext "This tool allows you to have remote assistance from an Elive developer in a secure way, giving him access to your computer. Do you want to continue?" )" || exit
+        $guitool --question --text="$( eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer. Do you want to continue?" )" || exit
     else
         echo -e "$( eval_gettext "This tool allows remote assistance from an Elive developer in a secure way, giving him access to your computer." )"
 
@@ -497,9 +497,9 @@ main(){
     # internet connection {{{
     if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
-            $guitool --info --text="$( eval_gettext "You need to be connected to internet, please connect first and then continue" )"
+            $guitool --info --text="$( eval_gettext "You need to be connected to the Internet, please connect before continuing" )"
         else
-            echo "$( eval_gettext "You need to be connected to internet, please connect first and then continue" )"
+            echo "$( eval_gettext "You need to be connected to the Internet, please connect before continuing" )"
             read nada
         fi
     fi
