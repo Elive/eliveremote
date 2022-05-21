@@ -236,25 +236,25 @@ connection_stablish(){
 
                 # now that we are connected, give the info
                 if [[ -n $DISPLAY ]] ; then
-                    # xchat available ?
-                    if ! el_dependencies_check xchat ; then
-                        el_dependencies_install xchat
+                    # hexchat available ?
+                    if ! el_dependencies_check hexchat ; then
+                        el_dependencies_install hexchat
                     fi
 
                     # automatic mode
                     if [[ "$UID" != 0 ]] ; then
                         if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
-                            if ! ps ux | grep -v grep | grep -qs xchat ; then
-                                xchat &
+                            if ! ps ux | grep -v grep | grep -qs hexchat ; then
+                                hexchat &
                             fi
                             # wait an entire minute for a successful connection, just in case that less is not enough
                             sleep 60
-                            xchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
-                            xchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
-                            xchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
-                            xchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
                             sleep 1
-                            xchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
 
 
                             local translated_message
@@ -265,15 +265,15 @@ connection_stablish(){
                     else
                         if ((is_mode_live)) ; then
                             if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
-                                su -c "xchat" eliveuser &
+                                su -c "hexchat" eliveuser &
                                 # wait an entire minute for a successful connection, just in case that less is not enough
                                 sleep 60
-                                xchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
-                                xchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
-                                xchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
-                                xchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
+                                hexchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
+                                hexchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
+                                hexchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
+                                hexchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
                                 sleep 1
-                                xchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
+                                hexchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
                             fi
                         fi
 
