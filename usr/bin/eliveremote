@@ -375,7 +375,36 @@ main(){
             sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
         fi
 
-        sudo -H service ssh restart
+        # reconfigure SSH keys {{{
+        # note: we do this here instead of boot step (live-config) because it really slows down the startup almost hanging it!
+        case "$( cat /etc/debian_version )" in
+            7.*|"wheezy/"*)
+                _PROTOCOLS="dsa rsa ecdsa"
+                ;;
+            10.*|"buster/"|11.*|"bullseye"*)
+                _PROTOCOLS="dsa rsa ecdsa ed25519"
+                ;;
+            *)
+                _PROTOCOLS="dsa rsa ecdsa"
+                el_warning "unknown debian version in $0"
+                ;;
+        esac
+
+        # regenerate ssh seeds, always
+        for _PROTOCOL in $_PROTOCOLS
+        do
+            if [ ! -e /etc/ssh/ssh_host_${_PROTOCOL}_key ] &&
+                grep -qs ssh_host_${_PROTOCOL}_key /etc/ssh/sshd_config
+                    then
+                        yes | sudo -H ssh-keygen -q -f /etc/ssh/ssh_host_${_PROTOCOL}_key -N "" -t ${_PROTOCOL}
+            fi
+        done
+
+        # }}}
+
+        #sudo -H service ssh restart
+        sudo -H systemctl unmask ssh.service 1>/dev/null 2>&1 || true
+        sudo -H systemctl restart ssh.service 1>/dev/null 2>&1 || true
     else
 
         if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
@@ -387,7 +416,9 @@ main(){
     # verify that ssh is running
     if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
         if ((is_mode_live)) ; then
-            sudo /etc/init.d/ssh restart
+            #sudo /etc/init.d/ssh restart
+            sudo -H systemctl unmask ssh.service 1>/dev/null 2>&1 || true
+            sudo -H systemctl restart ssh.service 1>/dev/null 2>&1 || true
         else
             if [[ -n "$DISPLAY" ]] ; then
                 el_dependencies_check "gksu"
@@ -455,6 +486,7 @@ main(){
         fi
 
     else
+        # installed mode:
 
         if [[ -n "$DISPLAY" ]] ; then
 
@@ -476,7 +508,8 @@ main(){
                     gksu /etc/init.d/ssh start && break
                 done
             else
-                el_sudo /etc/init.d/ssh restart
+                #el_sudo /etc/init.d/ssh restart
+                el_sudo systemctl restart ssh.service
             fi
         fi
     fi
