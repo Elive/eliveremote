@@ -559,11 +559,11 @@ main(){
                 result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
             fi
         fi
-else
-    # graphical system not works, only thanatermesis for now, no time to code
-    #result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
-    result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
-fi
+    else
+        # graphical system not works, only thanatermesis for now, no time to code
+        #result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+        result="$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )"
+    fi
 
 if [[ "${result}" = "cancel" ]] ; then
     exit
