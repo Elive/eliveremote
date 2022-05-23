@@ -1,4 +1,5 @@
 #!/bin/bash
+SOURCE="$0"
 source /usr/lib/elive-tools/functions
 
 . gettext.sh
@@ -286,9 +287,9 @@ connection_stablish(){
                 else
 
                     local translated_message
-                    translated_message="$( printf "$( eval_gettext "Please contact %s to be able to connect (he needs to know your root password) either from another computer or run 'irssi' to open an IRC chat in console mode. You should log in to the #elive channel on the 'irc.libera.chat' server" )" "$SURGEON_NICK" )"
+                    translated_message="$( printf "$( eval_gettext "Contact %s and tell him the password you have set in order to be able to connect to your computer. You can enter the IRC chat using 'irssi' or from a different computer, the server is 'irc.libera.chat' and the channel #elive." )" "$SURGEON_NICK" )"
 
-                    echo -e "$translated_message"
+                    el_info "$translated_message"
                 fi
 
 
@@ -296,7 +297,7 @@ connection_stablish(){
                 if [[ -n "$DISPLAY" ]] ; then
                     $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )"
                 else
-                    echo -e "$( eval_gettext "The remote user should now be connected, please wait until a message appears stating the connection has terminated before closing this application." )"
+                    el_info "$( eval_gettext "When the remote admin has successfully connected, you will need to wait for a 'Connection finished' message to appear which means he finished all the things to do." )"
                 fi
 
                 sleep 5
