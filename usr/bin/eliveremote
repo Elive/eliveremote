@@ -297,7 +297,7 @@ connection_stablish(){
                 if [[ -n "$DISPLAY" ]] ; then
                     $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )"
                 else
-                    el_info "$( eval_gettext "When the remote admin has successfully connected, you will need to wait for a 'Connection finished' message to appear which means he finished all the things to do." )"
+                    el_info "$( eval_gettext "When the remote admin has successfully connected, you will need to wait for a 'Connection finished' message to appear which means they finished all the things to do." )"
                 fi
 
                 sleep 5
