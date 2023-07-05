@@ -412,15 +412,17 @@ main(){
         sudo -H systemctl restart ssh.service 1>/dev/null 2>&1 || true
     else
 
-        if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
-            if $guitool --question --text="To make this tool working, we need to enable root login on your SSH server, we will disable it again after eliveremote has finished. Continue?" ; then
-                urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
-                is_ssh_reconfigured=1
-            else
-                $guitool --error
-                exit 1
-            fi
-        fi
+        # update: root login is not really required
+        true
+        # if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
+        #     if $guitool --question --text="To make this tool working, we need to enable root login on your SSH server, we will disable it again after eliveremote has finished. Continue?" ; then
+        #         urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
+        #         is_ssh_reconfigured=1
+        #     else
+        #         $guitool --error
+        #         exit 1
+        #     fi
+        # fi
     fi
 
     # verify that ssh is running
