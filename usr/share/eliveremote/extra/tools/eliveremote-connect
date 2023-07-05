@@ -32,6 +32,7 @@ Options:
   -c, --connect     connect to remote
   -d, --disconnect  disconnect the remote
   -l, --list        list waiting connections
+  -u, --user        set the user (root?)
   -Y                with X11 access to your computer
 
 Note: if you are a surgeon in the server (useful for when you cannot open your own ports), do:
