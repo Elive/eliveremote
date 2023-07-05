@@ -47,6 +47,10 @@ cleanups(){
         kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
     fi
 
+    # reconfigure back ssh
+    if ((is_ssh_reconfigured)) ; then
+        urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin no|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication no|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
+    fi
 }
 
 #===  FUNCTION  ================================================================
@@ -409,8 +413,13 @@ main(){
     else
 
         if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
-            $guitool --error --text="To make this tool working you need to edit your /etc/ssh/sshd_config file and add the options 'PermitRootLogin yes' and 'PasswordAuthentication yes', then restart the ssh service. Then, run again this tool."
-            exit 1
+            if $guitool --question --text="To make this tool working, we need to enable root login on your SSH server, we will disable it again after eliveremote has finished. Continue?" ; then
+                urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
+                is_ssh_reconfigured=1
+            else
+                $guitool --error
+                exit 1
+            fi
         fi
     fi
 
