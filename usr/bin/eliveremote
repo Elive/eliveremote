@@ -386,7 +386,7 @@ main(){
             7.*|"wheezy/"*)
                 _PROTOCOLS="dsa rsa ecdsa"
                 ;;
-            10.*|"buster/"|11.*|"bullseye"*)
+            10.*|"buster/"|11.*|"bullseye"*|12.*|"bookworm"*)
                 _PROTOCOLS="dsa rsa ecdsa ed25519"
                 ;;
             *)
