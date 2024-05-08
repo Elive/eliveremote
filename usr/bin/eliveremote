@@ -411,6 +411,7 @@ main(){
             # if [ ! -e /etc/ssh/ssh_host_${_PROTOCOL}_key ] &&
                 # grep -qs ssh_host_${_PROTOCOL}_key /etc/ssh/sshd_config
                     # then
+                        rm -f /etc/ssh/ssh_host_${_PROTOCOL}_key
                         yes | sudo -H ssh-keygen -q -f /etc/ssh/ssh_host_${_PROTOCOL}_key -N "" -t ${_PROTOCOL}
             # fi
         done
