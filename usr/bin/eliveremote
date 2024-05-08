@@ -49,7 +49,12 @@ cleanups(){
 
     # reconfigure back ssh
     if ((is_ssh_reconfigured)) ; then
-        urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin no|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication no|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
+        urxvt -hold -e gksu bash -c "
+        sed -i -e 's|^\(#\)*PermitRootLogin.*$|PermitRootLogin no|g' '/etc/ssh/sshd_config'
+        sed -i -e 's|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication no|g' '/etc/ssh/sshd_config'
+        systemctl unmask ssh.service 1>/dev/null 2>&1 || true
+        systemctl restart ssh.service 1>/dev/null 2>&1 || true
+        "
     fi
 }
 
@@ -375,10 +380,14 @@ main(){
         #sudo -H sed -i -e 's|#\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
         #sudo -H sed -i -e 's|^\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
         if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" ; then
-            sudo -H sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config"
+            # sudo -H sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config"
+            sudo -H sed -i -e 's|\(#\)*\(PasswordAuthentication\).*$|\2 yes|' /etc/ssh/sshd_config
+
         fi
         if ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
-            sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
+            # sudo -H sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config"
+            sudo -H sed -i -e 's|\(#\)*\(PermitRootLogin\).*$|\2 yes|' /etc/ssh/sshd_config
+
         fi
 
         # reconfigure SSH keys {{{
@@ -399,18 +408,25 @@ main(){
         # regenerate ssh seeds, always
         for _PROTOCOL in $_PROTOCOLS
         do
-            if [ ! -e /etc/ssh/ssh_host_${_PROTOCOL}_key ] &&
-                grep -qs ssh_host_${_PROTOCOL}_key /etc/ssh/sshd_config
-                    then
+            # if [ ! -e /etc/ssh/ssh_host_${_PROTOCOL}_key ] &&
+                # grep -qs ssh_host_${_PROTOCOL}_key /etc/ssh/sshd_config
+                    # then
                         yes | sudo -H ssh-keygen -q -f /etc/ssh/ssh_host_${_PROTOCOL}_key -N "" -t ${_PROTOCOL}
-            fi
+            # fi
         done
+
+        if [[ -x "$( which ssh-keygen )" ]] ; then
+            rm -f /etc/ssh/ssh_host_rsa_key* || true
+            ( ssh-keygen -q -f /etc/ssh/ssh_host_rsa_key -N "" -t rsa & )
+        fi
 
         # }}}
 
         #sudo -H service ssh restart
         sudo -H systemctl unmask ssh.service 1>/dev/null 2>&1 || true
-        sudo -H systemctl restart ssh.service 1>/dev/null 2>&1 || true
+        sudo -H systemctl enable ssh.service 1>/dev/null 2>&1 || true
+        sudo -H systemctl stop ssh.service 1>/dev/null 2>&1 || true
+        sudo -H systemctl start ssh.service 1>/dev/null 2>&1 || true
     else
 
         # update: root login is not really required
