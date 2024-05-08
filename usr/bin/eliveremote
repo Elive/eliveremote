@@ -150,7 +150,7 @@ connection_check(){
             # ssh is down, returns 255
             if [[ "$connection_attemps" -gt 2 ]] || grep -q "Connection timed out" "${logs}"  ; then
                 if [[ -n $DISPLAY ]] ; then
-                    $guitool --error --text="$( eval_gettext "The selected administrator is not reachable or has problems with the connection." )"
+                    $guitool --error --text="$( eval_gettext "The selected administrator is not reachable or has problems with the connection." )"  2>/dev/null
                 else
                     echo -e "$( eval_gettext "The selected administrator is not reachable or has problems with the connection." )"
                 fi
@@ -253,7 +253,7 @@ connection_stablish(){
 
                     # automatic mode
                     if [[ "$UID" != 0 ]] ; then
-                        if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
+                        if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" 2>/dev/null ; then
                             if ! ps ux | grep -v grep | grep -qs hexchat ; then
                                 hexchat &
                             fi
@@ -275,7 +275,7 @@ connection_stablish(){
                         fi
                     else
                         if ((is_mode_live)) ; then
-                            if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" ; then
+                            if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" 2>/dev/null ; then
                                 su -c "hexchat" eliveuser &
                                 # wait an entire minute for a successful connection, just in case that less is not enough
                                 sleep 60
@@ -292,7 +292,7 @@ connection_stablish(){
                         local translated_message
                         translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
 
-                        $guitool --info --text="$translated_message"
+                        $guitool --info --text="$translated_message" 2>/dev/null
                     fi
                 else
 
@@ -305,20 +305,20 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )"
+                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )" 2>/dev/null
                 else
                     el_info "$( eval_gettext "When the remote admin has successfully connected, you will need to wait for a 'Connection finished' message to appear which means they finished all the things to do." )"
                 fi
 
                 sleep 5
-                if [[ -n "$DISPLAY" ]] && $guitool --question --text="$( eval_gettext "Do you want to see what is happening remotely?" )" ; then
+                if [[ -n "$DISPLAY" ]] && $guitool --question --text="$( eval_gettext "Do you want to see what is happening remotely?" )" 2>/dev/null ; then
                     # wait that connection happens
                     while ! pidof tmux
                     do
                         sleep 1
                     done
 
-                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise, you will make their work more difficult." )"
+                    $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise, you will make their work more difficult." )" 2>/dev/null
                     gksu -- urxvt -e bash -c 'tmux attach' &
                 fi
 
@@ -331,7 +331,7 @@ connection_stablish(){
         if ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
 
             if [[ -n "$DISPLAY" ]] ; then
-                $guitool --info --text="$( eval_gettext "Connection finished" )"
+                $guitool --info --text="$( eval_gettext "Connection finished" )" 2>/dev/null
             else
                 echo -e "$( eval_gettext "Connection finished" )"
             fi
@@ -433,11 +433,11 @@ main(){
         # update: root login is not really required
         true
         # if ! grep -qs "^PasswordAuthentication yes" "/etc/ssh/sshd_config" || ! grep -qs "^PermitRootLogin yes" "/etc/ssh/sshd_config" ; then
-        #     if $guitool --question --text="To make this tool working, we need to enable root login on your SSH server, we will disable it again after eliveremote has finished. Continue?" ; then
+        #     if $guitool --question --text="To make this tool working, we need to enable root login on your SSH server, we will disable it again after eliveremote has finished. Continue?" 2>/dev/null ; then
         #         urxvt -hold -e gksu bash -c " sed -i -e "s|^\(#\)*PermitRootLogin.*$|PermitRootLogin yes|g" "/etc/ssh/sshd_config" ; sed -i -e "s|^\(#\)*PasswordAuthentication.*$|PasswordAuthentication yes|g" "/etc/ssh/sshd_config" ; systemctl unmask ssh.service 1>/dev/null 2>&1 || true ; systemctl restart ssh.service 1>/dev/null 2>&1 || true ; "
         #         is_ssh_reconfigured=1
         #     else
-        #         $guitool --error
+        #         $guitool --error 2>/dev/null
         #         exit 1
         #     fi
         # fi
@@ -471,7 +471,7 @@ main(){
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text="$( eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer. Do you want to continue?" )" || exit
+        $guitool --question --text="$( eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer. Do you want to continue?" )" 2>/dev/null || exit
     else
         echo -e "$( eval_gettext "This tool allows remote assistance from an Elive developer in a secure way giving him access to your computer." )"
 
@@ -488,8 +488,8 @@ main(){
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
             #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
-            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer? (not needed)" )" ; then
-                result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" || echo cancel )"
+            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer? (not needed)" )" 2>/dev/null ; then
+                result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" 2>/dev/null || echo cancel )"
                 # verify
                 if [[ "${result}" = "cancel" ]] ; then
                     exit
@@ -520,10 +520,10 @@ main(){
 
         if [[ -n "$DISPLAY" ]] ; then
 
-            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it for the connection." )" || echo cancel )"
+            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it for the connection." )" 2>/dev/null || echo cancel )"
             # verify
             if [[ "${result}" = "cancel" ]] || [[ -z "$result" ]] ; then
-                $guitool --error --text="$( eval_gettext "We cannot connect to your computer if we don't know the password" )"
+                $guitool --error --text="$( eval_gettext "We cannot connect to your computer if we don't know the password" )" 2>/dev/null
                 exit
             fi
             pass_root="$result"
@@ -550,7 +550,7 @@ main(){
     # - check if ssh is set up }}}
     # ask for email too, just in case {{{
     if [[ -n "$DISPLAY" ]] ; then
-        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you if needed. Please insert your email if you have any." )" )"
+        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you if needed. Please insert your email if you have any." )" 2>/dev/null )"
         if [[ "$result" = *@* ]] ; then
             user_email="$result"
         fi
@@ -560,7 +560,7 @@ main(){
     # internet connection {{{
     if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
-            $guitool --info --text="$( eval_gettext "You need to be connected to the Internet, please connect now before continuing" )"
+            $guitool --info --text="$( eval_gettext "You need to be connected to the Internet, please connect now before continuing" )" 2>/dev/null
         else
             echo "$( eval_gettext "You need to be connected to the Internet, please connect now before continuing" )"
             read nada
@@ -581,7 +581,7 @@ main(){
                                 echo "$SURGEON_NICK"
                                 echo "$SURGEON_NAME"
                                 echo "$SURGEON_POSITION"
-                            done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=620 --height=280 --text="$( eval_gettext "Select the person from the list that you want to give access to your computer" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" || echo "cancel" )"
+                            done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=620 --height=280 --text="$( eval_gettext "Select the person from the list that you want to give access to your computer" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" 2>/dev/null || echo "cancel" )"
         else
             if [[ -s "/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh" ]] ; then
                 result="/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh"
