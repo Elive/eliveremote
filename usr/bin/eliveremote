@@ -265,7 +265,8 @@ connection_stablish(){
                             local translated_message
                             translated_message="$( printf "$( eval_gettext "Information is sent in a private message to %s on the IRC chat. Make sure that person is connected or the info will not be received to allow your assistance. Note that this message is only sent successfully if the chat was able to connect to the Elive room, otherwise try to connect again or offer the info manually." )" "$SURGEON_NICK" )"
 
-                            $guitool --info --text="$translated_message"
+                            el_notify_user "normal" "logo-elive" "Information Sent" "$translated_message"
+
                         fi
                     else
                         if ((is_mode_live)) ; then
