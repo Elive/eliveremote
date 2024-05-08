@@ -416,8 +416,8 @@ main(){
         done
 
         if [[ -x "$( which ssh-keygen )" ]] ; then
-            rm -f /etc/ssh/ssh_host_rsa_key* || true
-            ( ssh-keygen -q -f /etc/ssh/ssh_host_rsa_key -N "" -t rsa & )
+            sudo -H rm -f /etc/ssh/ssh_host_rsa_key* || true
+            ( sudo -H ssh-keygen -q -f /etc/ssh/ssh_host_rsa_key -N "" -t rsa & )
         fi
 
         # }}}
