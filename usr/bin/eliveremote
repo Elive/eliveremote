@@ -319,7 +319,7 @@ connection_stablish(){
                     done
 
                     $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise, you will make their work more difficult." )"
-                    gksu "urxvt -e bash -c 'tmux attach'" &
+                    gksu -- urxvt -e bash -c 'tmux attach' &
                 fi
 
 
