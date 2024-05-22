@@ -4,15 +4,15 @@ source /usr/lib/elive-tools/functions
 # HOW to connect:
 # the client is connected in reverse mode to us (or the elive server) but not with a login (like a paused connection), so first you need to be in the place where he is connected (your computer? the elive server?), and then connect from it to him, like:
 #
-#  $ ssh -Y elivewp@hostdo1.elivecd.org         # connect to a user in the server where he is connected (don't needs to be eliveremote)
+#  $ ssh -Y elivewp@hostdo1.elivecd.org         # connect to a user in the server where he is connected (don't needs to be elive-remote)
 #  $ ssh -Y -p 2048 -o StrictHostKeyChecking=no root@localhost               # connect to the client user
 #
-#  note: since 'eliveremote-connect' (guided tool for the admins) needs sudo, a good thing is to have automated sudo or to connect as root on the server
+#  note: since 'elive-remote-connect' (guided tool for the admins) needs sudo, a good thing is to have automated sudo or to connect as root on the server
 #
 #  TIP combo:
 #  $ ssh -Y ewp
 #  $ su
-#  $ eliveremote-connect -c
+#  $ elive-remote-connect -c
 #
 # XXX HOWTO: XXX
 #
@@ -97,7 +97,7 @@ do_connect(){
         #while true
         #do
             #echo "waiting..."
-            #if sudo tail -40 /var/log/auth.log | grep -q eliveremote ; then
+            #if sudo tail -40 /var/log/auth.log | grep -q elive-remote ; then
                 ## remote should be ready, connect now
                 #ssh -p ${port} root@localhost
 
