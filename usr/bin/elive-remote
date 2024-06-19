@@ -488,7 +488,7 @@ main(){
         # ^ always re-configure root password for live mode
         if [[ -n "$DISPLAY" ]] ; then
             #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
-            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer? (not needed)" )" 2>/dev/null ; then
+            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer? (optional)" )" 2>/dev/null ; then
                 result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" 2>/dev/null || echo cancel )"
                 # verify
                 if [[ "${result}" = "cancel" ]] ; then
