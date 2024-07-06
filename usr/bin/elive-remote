@@ -270,7 +270,7 @@ connection_stablish(){
                             local translated_message
                             translated_message="$( printf "$( eval_gettext "Information is sent in a private message to %s on the IRC chat. Make sure that person is connected or the info will not be received to allow your assistance. Note that this message is only sent successfully if the chat was able to connect to the Elive room, otherwise try to connect again or offer the info manually." )" "$SURGEON_NICK" )"
 
-                            el_notify_user "normal" "logo-elive" "Information Sent" "$translated_message"
+                            el_notify "normal" "logo-elive" "Information Sent" "$translated_message"
 
                         fi
                     else
@@ -611,7 +611,7 @@ el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION|SURGEON_ADDRESS|S
 
 if [[ -n "$DISPLAY" ]] ; then
     { sleep 1 ; echo 10 ; sleep 1000 ; } \
-        | $guitool --progress --auto-kill --text="$( eval_gettext "Connecting, please wait..." )" --pulsate &
+        | $guitool --progress --auto-kill --text="$( eval_gettext "Connecting, please wait..." )" --pulsate 2>/dev/null  &
     pid_progress=$!
 fi
 
