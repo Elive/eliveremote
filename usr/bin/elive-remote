@@ -252,8 +252,8 @@ connection_stablish(){
                     fi
 
                     # automatic mode
-                    if [[ "$UID" != 0 ]] ; then
-                        if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" 2>/dev/null ; then
+                    if [[ "$inform_assistant" == "TRUE" ]] ; then
+                        if [[ "$UID" != 0 ]] ; then
                             if ! ps ux | grep -v grep | grep -qs hexchat ; then
                                 hexchat &
                             fi
@@ -272,26 +272,24 @@ connection_stablish(){
 
                             el_notify "normal" "logo-elive" "Information Sent" "$translated_message"
 
+                        elif ((is_mode_live)) ; then
+                            su -c "hexchat" eliveuser &
+                            # wait an entire minute for a successful connection, just in case that less is not enough
+                            sleep 60
+                            hexchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
+                            hexchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
+                            sleep 1
+                            hexchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
+                        else
+                            local translated_message
+                            translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
+                            $guitool --info --text="$translated_message" 2>/dev/null
                         fi
                     else
-                        if ((is_mode_live)) ; then
-                            if $guitool --question --text="$( eval_gettext "Do you want to automatically inform the details of the connection to the administrator via private message in the chat room? (recommended)" )" 2>/dev/null ; then
-                                su -c "hexchat" eliveuser &
-                                # wait an entire minute for a successful connection, just in case that less is not enough
-                                sleep 60
-                                hexchat -e -c "msg ${SURGEON_NICK} user name:    ${USER}" &
-                                hexchat -e -c "msg ${SURGEON_NICK} port:         ${port_local}" &
-                                hexchat -e -c "msg ${SURGEON_NICK} email:        ${user_email}" &
-                                hexchat -e -c "msg ${SURGEON_NICK} address/host: ${SURGEON_ADDRESS}" &
-                                sleep 1
-                                hexchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
-                            fi
-                        fi
-
-
                         local translated_message
                         translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
-
                         $guitool --info --text="$translated_message" 2>/dev/null
                     fi
                 else
@@ -305,13 +303,13 @@ connection_stablish(){
 
                 # please wait until it closes
                 if [[ -n "$DISPLAY" ]] ; then
-                    $guitool --warning --text="$( eval_gettext "Important: If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )" 2>/dev/null
+                    el_notify "normal" "logo-elive" "Important" "$( eval_gettext "If you have run this tool from a terminal do not close it until the remote assistance has finished. A message will appear when the connection terminates." )"
                 else
                     el_info "$( eval_gettext "When the remote admin has successfully connected, you will need to wait for a 'Connection finished' message to appear which means they finished all the things to do." )"
                 fi
 
                 sleep 5
-                if [[ -n "$DISPLAY" ]] && $guitool --question --text="$( eval_gettext "Do you want to see what is happening remotely?" )" 2>/dev/null ; then
+                if [[ -n "$DISPLAY" ]] && [[ "$watch_session" == "TRUE" ]] ; then
                     # wait that connection happens
                     while ! pidof tmux
                     do
@@ -319,6 +317,7 @@ connection_stablish(){
                     done
 
                     $guitool --info --text="$( eval_gettext "We are going to open a shared terminal, please maximize this window after it opens, and do not close it until the remote assistance has finished. Somebody will be working from it, please do not type in the terminal. Otherwise, you will make their work more difficult." )" 2>/dev/null
+                    sleep 2
                     gksu -- urxvt -e bash -c 'tmux attach' &
                 fi
 
@@ -348,9 +347,9 @@ connection_stablish(){
 
 main(){
     # pre {{{
-    local guitool surgeon line result profile_d returned_status
+    local guitool surgeon line result profile_d returned_status watch_session inform_assistant
 
-    guitool="zenity --window-icon=/usr/share/icons/Elive/scalable/apps/logo-elive.png"
+    guitool="yad --window-icon=/usr/share/icons/gnome/256x256/apps/logo-elive.png"
 
     # Usage
     case $1 in
@@ -364,8 +363,8 @@ main(){
             ;;
     esac
 
-    if ! el_dependencies_check "zenity|psort|sshd|gksu" ; then
-        el_dependencies_install "zenity|elive-tools|ssh|gksu"
+    if ! el_dependencies_check "yad|psort|sshd|gksu" ; then
+        el_dependencies_install "yad|elive-tools|ssh|gksu"
     fi
 
     if grep -q "boot=live" /proc/cmdline ; then
@@ -471,7 +470,159 @@ main(){
 
     # check if our ssh is set up {{{
     if [[ -n $DISPLAY ]] ; then
-        $guitool --question --text="$( eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer. Do you want to continue?" )" 2>/dev/null || exit
+        # prepare surgeon list
+        local surgeon_list_yad=""
+        local surgeon_profiles_list
+        surgeon_profiles_list="$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh 2>/dev/null | psort -- -p "eliveadmin" -p "thanatermesis" )"
+
+        if [[ -z "$surgeon_profiles_list" ]] ; then
+            # fallback
+            if [[ -s "/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh" ]] ; then
+                surgeon_profiles_list="/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh"
+            elif [[ -s "/usr/share/eliveremote/surgeons/thanatermesis/profile.sh" ]] ; then
+                surgeon_profiles_list="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+            fi
+        fi
+
+        local surgeon_list_count
+        surgeon_list_count="$( echo "$surgeon_profiles_list" | wc -l )"
+
+        if (( surgeon_list_count > 0 )) ; then
+            while read -ru 3 line
+            do
+                source "$line"
+                el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION"
+
+                if [[ -n "$surgeon_list_yad" ]] ; then
+                    surgeon_list_yad+="!"
+                fi
+                surgeon_list_yad+="${SURGEON_NICK} (${SURGEON_NAME} - ${SURGEON_POSITION})"
+            done 3<<< "$surgeon_profiles_list"
+        fi
+
+        if ((is_mode_live)) ; then
+            # Live mode form
+            local yad_fields yad_output
+            yad_fields=(
+                --field="$(eval_gettext "Set a new password for security"):CHK" "FALSE"
+                --field="$(eval_gettext "Your email (optional)"):TEXT" ""
+            )
+
+            if (( surgeon_list_count > 1 )) ; then
+                yad_fields+=( --field="$(eval_gettext "Select assistant"):CB" "$surgeon_list_yad" )
+            fi
+            yad_fields+=(
+                --field="$(eval_gettext "Watch the remote assistant tasks"):CHK" "TRUE"
+                --field="$(eval_gettext "Automatically inform the assistant with your connection details"):CHK" "TRUE"
+            )
+
+            yad_output="$(yad --form --separator='|' \
+                --title="Elive Remote Assistance" \
+                --text="$(eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer.")" \
+                "${yad_fields[@]}" \
+                --borders=20 \
+                --image=/usr/share/icons/gnome/256x256/apps/logo-elive.png:200x200 \
+                --window-icon=/usr/share/icons/gnome/256x256/apps/logo-elive.png
+            )"
+            if [[ $? -ne 0 ]]; then exit; fi # cancelled
+
+            if (( surgeon_list_count > 1 )) ; then
+                IFS='|' read -r set_pass user_email result watch_session inform_assistant <<< "$yad_output"
+            else
+                IFS='|' read -r set_pass user_email watch_session inform_assistant <<< "$yad_output"
+            fi
+
+            if [[ "$set_pass" == "TRUE" ]]; then
+                local new_pass conf_pass
+                IFS='|' read -r new_pass conf_pass <<< "$(yad --form --separator='|' \
+                    --title="$(eval_gettext "Set New Password")" \
+                    --text="$(eval_gettext "Please enter and confirm your new password.")" \
+                    --field="$(eval_gettext "New password"):H" "" \
+                    --field="$(eval_gettext "Confirm password"):H" "" \
+                    --borders=20 \
+                    --image=/usr/share/icons/gnome/256x256/apps/logo-elive.png:200x200 \
+                    --window-icon=/usr/share/icons/gnome/256x256/apps/logo-elive.png
+                )"
+                if [[ $? -ne 0 ]]; then exit; fi # cancelled
+
+                if [[ -z "$new_pass" ]]; then
+                    $guitool --error --text="$(eval_gettext "Password cannot be empty.")" 2>/dev/null
+                    exit 1
+                fi
+                if [[ "$new_pass" != "$conf_pass" ]]; then
+                    $guitool --error --text="$(eval_gettext "Passwords do not match.")" 2>/dev/null
+                    exit 1
+                fi
+                pass_root="$new_pass"
+                echo "root:${pass_root}" | sudo chpasswd -m
+            else
+                pass_root="elive"
+            fi
+        else
+            # Installed mode form
+            local yad_fields yad_output
+            yad_fields=(
+                --field="$(eval_gettext "Your root (admin) password"):H" ""
+                --field="$(eval_gettext "Your email (optional)"):TEXT" ""
+            )
+
+            if (( surgeon_list_count > 1 )) ; then
+                yad_fields+=( --field="$(eval_gettext "Select assistant"):CB" "$surgeon_list_yad" )
+            fi
+            yad_fields+=(
+                --field="$(eval_gettext "Watch the remote assistant tasks"):CHK" "TRUE"
+                --field="$(eval_gettext "Automatically inform the assistant with your connection details"):CHK" "TRUE"
+            )
+
+            yad_output="$(yad --form --separator='|' \
+                --title="Elive Remote Assistance" \
+                --text="$(eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer.")" \
+                "${yad_fields[@]}" \
+                --borders=20 \
+                --image=/usr/share/icons/gnome/256x256/apps/logo-elive.png:200x200 \
+                --window-icon=/usr/share/icons/gnome/256x256/apps/logo-elive.png
+            )"
+            if [[ $? -ne 0 ]]; then exit; fi # cancelled
+
+            if (( surgeon_list_count > 1 )) ; then
+                IFS='|' read -r pass_root user_email result watch_session inform_assistant <<< "$yad_output"
+            else
+                IFS='|' read -r pass_root user_email watch_session inform_assistant <<< "$yad_output"
+            fi
+
+            if [[ -z "$pass_root" ]]; then
+                $guitool --error --text="$(eval_gettext "We cannot connect to your computer if we don't know the password")" 2>/dev/null
+                exit 1
+            fi
+        fi
+
+        if [[ ! "$user_email" = *@* ]] ; then
+            user_email=""
+        fi
+
+        # if result is empty use fallback. This could happen if surgeon_list_yad is empty
+        if (( surgeon_list_count > 1 )) ; then
+            # map name to path
+            local surgeon_path=""
+            if [[ -n "$result" ]]; then
+                while read -ru 3 line
+                do
+                    source "$line"
+                    local surgeon_display_name="${SURGEON_NICK} (${SURGEON_NAME} - ${SURGEON_POSITION})"
+                    if [[ "$surgeon_display_name" == "$result" ]]; then
+                        surgeon_path="$line"
+                        break
+                    fi
+                done 3<<< "$surgeon_profiles_list"
+            fi
+            result="$surgeon_path"
+        else
+            result="$( echo "$surgeon_profiles_list" | head -n1 )"
+        fi
+
+        if [[ -z "$result" ]] ; then
+            result="$( echo "$surgeon_profiles_list" | head -n1 )"
+        fi
     else
         echo -e "$( eval_gettext "This tool allows remote assistance from an Elive developer in a secure way giving him access to your computer." )"
 
@@ -479,84 +630,42 @@ main(){
             echo -e "Ok, bye"
             exit
         fi
-    fi
 
-
-    # we are in live mode: reconfigure root pass
-    if ((is_mode_live)) ; then
-        #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
-        # ^ always re-configure root password for live mode
-        if [[ -n "$DISPLAY" ]] ; then
-            #urxvt -e bash -c "echo ; echo 'Enter the new password for root (hidden):' ; echo ; echo ; sudo passwd ; sleep 3"
-            if $guitool --question --text="$( eval_gettext "You are in Live mode, do you want to change your default system password to a new one to increase the security of your computer? (optional)" )" 2>/dev/null ; then
-                result="$( $guitool --entry --text="$( eval_gettext "Insert a new password for root" )" 2>/dev/null || echo cancel )"
-                # verify
-                if [[ "${result}" = "cancel" ]] ; then
-                    exit
-                fi
-                pass_root="$result"
-
-                # change root password
-                echo "root:${pass_root}" | sudo chpasswd -m
-            else
-                pass_root="elive"
-            fi
-
-        else
+        # we are in live mode: reconfigure root pass
+        if ((is_mode_live)) ; then
+            #if sudo grep -q "^root::" /etc/shadow || sudo grep -q "^root:x:" /etc/shadow ; then
+            # ^ always re-configure root password for live mode
             local message_type_root_pass
             message_type_root_pass="$( printf "$( eval_gettext "Enter the new password for root (admin), what you type will be hidden:" )" "" )"
             local message_type_root_pass_details
 
             sudo passwd
-        fi
 
-        # no ssh running
-        if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            sudo /etc/init.d/ssh start
-        fi
-
-    else
-        # installed mode:
-
-        if [[ -n "$DISPLAY" ]] ; then
-
-            result="$( $guitool --entry --text="$( eval_gettext "Insert your root (admin) password, we need to know it for the connection." )" 2>/dev/null || echo cancel )"
-            # verify
-            if [[ "${result}" = "cancel" ]] || [[ -z "$result" ]] ; then
-                $guitool --error --text="$( eval_gettext "We cannot connect to your computer if we don't know the password" )" 2>/dev/null
-                exit
+            # no ssh running
+            if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+                sudo /etc/init.d/ssh start
             fi
-            pass_root="$result"
-
-        fi
-
-        # no ssh running
-        if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
-            if [[ -n "$DISPLAY" ]] ; then
-                for i in 1 2 3 4 5 6
-                do
-                    gksu /etc/init.d/ssh start && break
-                done
-            else
-                #el_sudo /etc/init.d/ssh restart
-                el_sudo systemctl restart ssh.service
+        else
+            # installed mode: no ssh running
+            if ! ps aux | grep -v grep | grep -q "root.*bin.*sshd" ; then
+                if [[ -n "$DISPLAY" ]] ; then
+                    for i in 1 2 3 4 5 6
+                    do
+                        gksu /etc/init.d/ssh start && break
+                    done
+                else
+                    #el_sudo /etc/init.d/ssh restart
+                    el_sudo systemctl restart ssh.service
+                fi
             fi
         fi
+
+        # graphical system not works, only thanatermesis for now, no time to code
+        #result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
+        result="$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh 2>/dev/null | psort -- -p "eliveadmin" -p "thanatermesis" | head -n1 )"
     fi
-
-
-
 
     # - check if ssh is set up }}}
-    # ask for email too, just in case {{{
-    if [[ -n "$DISPLAY" ]] ; then
-        result="$( $guitool --entry --text="$( eval_gettext "It will be useful for us to have a way to contact you if needed. Please insert your email if you have any." )" 2>/dev/null )"
-        if [[ "$result" = *@* ]] ; then
-            user_email="$result"
-        fi
-    fi
-
-    # }}}
     # internet connection {{{
     if ! el_verify_internet ; then
         if [[ -n "$DISPLAY" ]] ; then
@@ -569,39 +678,13 @@ main(){
 
 
     # - internet connection }}}
-    # list surgeons {{{
-    if [[ -n $DISPLAY ]] ; then
-        if [[ "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | wc -l )" -gt 1 ]] ; then
-            result="$( while read -ru 3 line
-                            do
-                                source "$line"
-                                el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION"
-
-                                echo "$line"
-                                echo "$SURGEON_NICK"
-                                echo "$SURGEON_NAME"
-                                echo "$SURGEON_POSITION"
-                            done 3<<< "$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )" | $guitool --list --width=620 --height=280 --text="$( eval_gettext "Select the person from the list that you want to give access to your computer" )" --hide-column=1 --column="" --column="$( eval_gettext "Nickname" )" --column="$( eval_gettext "Name" )" --column="$( eval_gettext "Ranked" )" 2>/dev/null || echo "cancel" )"
-        else
-            if [[ -s "/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh" ]] ; then
-                result="/usr/share/eliveremote/surgeons/eliveadmin1/profile.sh"
-            else
-                result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
-            fi
-        fi
-    else
-        # graphical system not works, only thanatermesis for now, no time to code
-        #result="/usr/share/eliveremote/surgeons/thanatermesis/profile.sh"
-        result="$( ls -1 /usr/share/eliveremote/surgeons/*/profile.sh | psort -- -p "eliveadmin" -p "thanatermesis" )"
+    if [[ "${result}" = "cancel" ]] ; then
+        exit
     fi
-
-if [[ "${result}" = "cancel" ]] ; then
-    exit
-fi
-profile_d="${result%/profile.sh}"
+    profile_d="${result%/profile.sh}"
 
 
-source "${profile_d}/profile.sh"
+    source "${profile_d}/profile.sh"
 
 el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION|SURGEON_ADDRESS|SURGEON_PORT"
 
