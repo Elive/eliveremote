@@ -26,7 +26,6 @@ connection_attemps=0
 cleanups(){
     # pre {{{
     el_debug "Function: ${FUNCNAME[0]} | Args: $* | Called by: ${FUNCNAME[1]} at line ${BASH_LINENO[0]}"
-    [[ "$1" == "1" ]] && el_debug "Cleanups called with exit status 1, possibly from el_check_variables or an error trap"
 
     # }}}
 
@@ -245,7 +244,6 @@ connection_stablish(){
             return 1
         fi
         el_debug "SSH tunnel process ${pid_connection} seems stable."
-        set -x
         break
     done
 
