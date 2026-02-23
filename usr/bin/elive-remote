@@ -227,10 +227,19 @@ connection_stablish(){
         el_debug "Persistent tunnel PID: ${pid_connection}"
 
         # Wait a bit to see if the connection holds
-        sleep 3
+        sleep 5
 
         if ! ps -p "${pid_connection}" >/dev/null 2>&1 ; then
-            el_debug "SSH tunnel process ${pid_connection} died immediately. Remote server might not be ready."
+            el_debug "SSH tunnel process ${pid_connection} died immediately. Remote server might not be ready or port is busy."
+            
+            # Check if it was a port issue
+            if grep -q "remote port forwarding failed for listen port" "${logs}" ; then
+                el_explain 0 "Port ${port_local} busy, trying next one..."
+                port_local="$(( port_local + 1 ))"
+                [[ "${port_local}" -gt "${port_local_max}" ]] && exit 1
+                continue
+            fi
+
             if [[ -n "$DISPLAY" ]] ; then
                 el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
             else
@@ -239,6 +248,7 @@ connection_stablish(){
             sleep 10
             continue
         fi
+        el_debug "SSH tunnel process ${pid_connection} seems stable."
         break
     done
 
@@ -362,7 +372,15 @@ connection_stablish(){
 
         # check if connection stills up
         if ! ps -p "${pid_connection}" >/dev/null 2>&1 && ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
-            el_debug "Connection lost or finished for port ${port_local}"
+            el_debug "Connection lost or finished for port ${port_local}. Checking if we should retry or exit."
+
+            # If the connection was never fully established (is_connection_started is false), 
+            # we should probably go back to the establishment loop instead of exiting.
+            if ! ((is_connection_started)) ; then
+                el_debug "Connection lost before being fully started. Retrying establishment..."
+                connection_stablish
+                return
+            fi
 
             if [[ -n "$DISPLAY" ]] ; then
                 $guitool --info --text="$( eval_gettext "Connection finished" )" 2>/dev/null
