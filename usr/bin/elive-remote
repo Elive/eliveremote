@@ -289,6 +289,7 @@ connection_stablish(){
                             if ! ps ux | grep -v grep | grep -qs hexchat ; then
                                 hexchat &
                             fi
+                            sleep 30
                             local translated_message
                             translated_message="$( printf "$( eval_gettext "Opening chat application... please contact %s and tell them your root password and the port number '%s' in a private chat" )" "$SURGEON_NICK" "$port_local" )"
                             el_notify "normal" "logo-elive" "Chat Opened" "$translated_message"
@@ -297,6 +298,7 @@ connection_stablish(){
                         if ! ps ux | grep -v grep | grep -qs hexchat ; then
                             hexchat &
                         fi
+                        sleep 30
                         local translated_message
                         translated_message="$( printf "$( eval_gettext "Opening chat application... please contact %s and tell them your root password and the port number '%s' in a private chat" )" "$SURGEON_NICK" "$port_local" )"
                         el_notify "normal" "logo-elive" "Chat Opened" "$translated_message"
