@@ -406,7 +406,7 @@ main(){
     # pre {{{
     local guitool surgeon line result profile_d returned_status watch_session inform_assistant
 
-    guitool="yad --center --window-icon=/usr/share/icons/gnome/48x48/apps/logo-elive.png:200x200 --image=/usr/share/icons/gnome/48x48/apps/logo-elive.png:200x200 --borders=20"
+    guitool="yad --center --window-icon=/usr/share/icons/gnome/48x48/apps/logo-elive.png --image=/usr/share/icons/gnome/48x48/apps/logo-elive.png --borders=20"
 
     # Usage
     case $1 in
@@ -579,7 +579,7 @@ main(){
                 --text="$(eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer.")" \
                 "${yad_fields[@]}" \
                 --borders=20 \
-                --image=/usr/share/icons/gnome/48x48/apps/logo-elive.png:200x200 \
+                --image=/usr/share/icons/gnome/48x48/apps/logo-elive.png \
                 --window-icon=/usr/share/icons/gnome/48x48/apps/logo-elive.png
             )"
             if [[ $? -ne 0 ]]; then exit; fi # cancelled
