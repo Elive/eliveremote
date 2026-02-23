@@ -198,8 +198,10 @@ connection_stablish(){
 
     el_security_function_loop 22 || return 0
 
-    local loops is_connection_started
+    local loops is_connection_started is_port_accepted
     loops=0
+    is_connection_started=0
+    is_port_accepted=0
 
     # cleanups function for remove remaining process
     # remove existing connection
@@ -282,6 +284,7 @@ connection_stablish(){
                 # share your connection info {{{
 
                 # now that we are connected, give the info
+                el_check_variables "SURGEON_NICK"
                 if [[ -n $DISPLAY ]] ; then
                     # hexchat available ?
                     if ! el_dependencies_check hexchat ; then
@@ -373,12 +376,13 @@ connection_stablish(){
 
         # check if connection stills up
         if ! ps -p "${pid_connection}" >/dev/null 2>&1 && ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
-            el_debug "Connection lost or finished for port ${port_local}. Checking if we should retry or exit."
+            el_debug "Connection lost or finished for port ${port_local}. Checking if we should retry or exit. (Started: ${is_connection_started})"
 
             # If the connection was never fully established (is_connection_started is false),
             # we should probably go back to the establishment loop instead of exiting.
             if ! ((is_connection_started)) ; then
-                el_debug "Connection lost before being fully started. Retrying establishment..."
+                el_debug "Connection lost before being fully started. Remote server might have disconnected us. Retrying establishment..."
+                sleep 5
                 connection_stablish
                 return
             fi
