@@ -25,7 +25,7 @@ connection_attemps=0
 #===============================================================================
 cleanups(){
     # pre {{{
-    el_debug "$@"
+    el_debug "Function: ${FUNCNAME[0]} | Args: $* | Called by: ${FUNCNAME[1]} at line ${BASH_LINENO[0]}"
 
     # }}}
 
