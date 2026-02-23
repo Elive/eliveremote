@@ -573,8 +573,7 @@ main(){
                 --field="$(eval_gettext "Automatically inform the assistant with your connection details"):CHK" "TRUE"
             )
 
-            yad_output="$(yad --form --separator='|' \
-                --center \
+            yad_output="$( $guitool --form --separator='|' \
                 --title="Elive Remote Assistance" \
                 --text="$(eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer.")" \
                 "${yad_fields[@]}" \
@@ -592,8 +591,7 @@ main(){
 
             if [[ "$set_pass" == "TRUE" ]]; then
                 local new_pass conf_pass
-                IFS='|' read -r new_pass conf_pass <<< "$(yad --form --separator='|' \
-                    --center \
+                IFS='|' read -r new_pass conf_pass <<< "$( $guitool --form --separator='|' \
                     --title="$(eval_gettext "Set New Password")" \
                     --text="$(eval_gettext "Please enter and confirm your new password.")" \
                     --field="$(eval_gettext "New password"):H" "" \
@@ -633,8 +631,7 @@ main(){
                 --field="$(eval_gettext "Automatically inform the assistant with your connection details"):CHK" "TRUE"
             )
 
-            yad_output="$(yad --form --separator='|' \
-                --center \
+            yad_output="$( $guitool --form --separator='|' \
                 --title="Elive Remote Assistance" \
                 --text="$(eval_gettext "This tool allows remote assistance by an Elive developer through having secure access to your computer.")" \
                 "${yad_fields[@]}" \
@@ -754,7 +751,7 @@ el_check_variables "SURGEON_NAME|SURGEON_NICK|SURGEON_POSITION|SURGEON_ADDRESS|S
 
 if [[ -n "$DISPLAY" ]] ; then
     { sleep 1 ; echo 10 ; sleep 1000 ; } \
-        | $guitool --progress --center --auto-kill --text="$( eval_gettext "Connecting, please wait..." )" --pulsate 2>/dev/null  &
+        | $guitool --progress --auto-kill --text="$( eval_gettext "Connecting, please wait..." )" --pulsate 2>/dev/null  &
     pid_progress=$!
 fi
 
@@ -763,7 +760,7 @@ fi
     local max_retries=30 # 30 * 10 seconds = 5 minutes
 
     while [[ $retry_count -lt $max_retries ]]; do
-        # We use a subshell or local trap override to prevent el_check_variables 
+        # We use a subshell or local trap override to prevent el_check_variables
         # from exiting the whole script during the connection phase
         if connection_check ; then
             if connection_stablish ; then
@@ -774,7 +771,7 @@ fi
 
         retry_count=$((retry_count + 1))
         el_debug "Connection attempt $retry_count failed, retrying in 10 seconds..."
-        
+
         if [[ -n "$DISPLAY" ]] ; then
             el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
         else
