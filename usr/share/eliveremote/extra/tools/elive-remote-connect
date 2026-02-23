@@ -81,7 +81,8 @@ do_connect(){
         exit 1
     fi
 
-    el_explain 0 "note: 'Connection refused' can mean that the password is not set in the remote"
+    el_explain 0 "NOTE: 'Connection refused' can mean that the password is not set in the remote"
+    el_explain 0 "going to run the command: __ssh -p $port ${sshopts} ${remote_user}@localhost__"
     el_explain 0 "to copy files use: __scp -P $port file.png ${remote_user}@localhost:/tmp__"
     el_explain 0 "run __export DISPLAY=localhost:10.0__ to have X11 access to your computer"
 
