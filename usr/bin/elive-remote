@@ -239,17 +239,10 @@ connection_stablish(){
             if grep -q "remote port forwarding failed for listen port" "${logs}" ; then
                 el_explain 0 "Port ${port_local} busy, trying next one..."
                 port_local="$(( port_local + 1 ))"
-                [[ "${port_local}" -gt "${port_local_max}" ]] && exit 1
+                [[ "${port_local}" -gt "${port_local_max}" ]] && return 1
                 continue
             fi
-
-            if [[ -n "$DISPLAY" ]] ; then
-                el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
-            else
-                el_explain 0 "$( eval_gettext "Waiting for remote administrator to be ready..." )"
-            fi
-            sleep 10
-            continue
+            return 1
         fi
         el_debug "SSH tunnel process ${pid_connection} seems stable."
         set -x
@@ -766,18 +759,31 @@ if [[ -n "$DISPLAY" ]] ; then
 fi
 
 
-    while true; do
-        connection_check
-        returned_status="$?"
-        if [[ "${returned_status}" -eq 0 ]]; then
-            break
-        elif [[ "${returned_status}" -eq 255 ]]; then
-            # connection_check already handled the error/retry logic
-            continue
+    local retry_count=0
+    local max_retries=30 # 30 * 10 seconds = 5 minutes
+
+    while [[ $retry_count -lt $max_retries ]]; do
+        # We use a subshell or local trap override to prevent el_check_variables 
+        # from exiting the whole script during the connection phase
+        if connection_check ; then
+            if connection_stablish ; then
+                cleanups
+                exit 0
+            fi
         fi
+
+        retry_count=$((retry_count + 1))
+        el_debug "Connection attempt $retry_count failed, retrying in 10 seconds..."
+        
+        if [[ -n "$DISPLAY" ]] ; then
+            el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
+        else
+            el_explain 0 "$( eval_gettext "The remote administrator is not yet ready. Retrying..." )"
+        fi
+        sleep 10
     done
 
-    connection_stablish
+    el_error "Failed to establish connection after 5 minutes."
 
 cleanups
 }
