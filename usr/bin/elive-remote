@@ -286,14 +286,20 @@ connection_stablish(){
                             sleep 1
                             hexchat -e -c "msg ${SURGEON_NICK} root pass:    ${pass_root}" &
                         else
+                            if ! ps ux | grep -v grep | grep -qs hexchat ; then
+                                hexchat &
+                            fi
                             local translated_message
-                            translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
-                            $guitool --info --text="$translated_message" 2>/dev/null
+                            translated_message="$( printf "$( eval_gettext "Opening chat application... please contact %s and tell them your root password and the port number '%s' in a private chat" )" "$SURGEON_NICK" "$port_local" )"
+                            el_notify "normal" "logo-elive" "Chat Opened" "$translated_message"
                         fi
                     else
+                        if ! ps ux | grep -v grep | grep -qs hexchat ; then
+                            hexchat &
+                        fi
                         local translated_message
-                        translated_message="$( printf "$( eval_gettext "Please open your chat application (second icon in your dock bar) and contact %s. Tell them your root password and the port number '%s' in a private chat (right click on them)" )" "$SURGEON_NICK" "$port_local" )"
-                        $guitool --info --text="$translated_message" 2>/dev/null
+                        translated_message="$( printf "$( eval_gettext "Opening chat application... please contact %s and tell them your root password and the port number '%s' in a private chat" )" "$SURGEON_NICK" "$port_local" )"
+                        el_notify "normal" "logo-elive" "Chat Opened" "$translated_message"
                     fi
                 else
 
