@@ -18,6 +18,7 @@ trap "cleanups 1 ; exit" 1 2 6 9 11 13 14 15
 
 logs="$(mktemp --tmpdir "elive-remote-${USER}-XXXXXX.log")"
 connection_attemps=0
+is_connection_successful=0
 
 #===  FUNCTION  ================================================================
 #          NAME:  cleanups
@@ -46,6 +47,15 @@ cleanups(){
     # close progress dialog
     if [[ -n "$pid_progress" ]] ; then
         kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
+    fi
+
+    # Report failure if we never succeeded and reached the retry limit
+    if (( ! is_connection_successful )) && [[ "$retry_count" -ge "$max_retries" ]] ; then
+        if [[ -n "$DISPLAY" ]] ; then
+            $guitool --error --text="$( eval_gettext "There are no administrators available to connect at this moment, please try again later." )" 2>/dev/null
+        else
+            echo -e "$( eval_gettext "There are no administrators available to connect at this moment, please try again later." )"
+        fi
     fi
 
     # reconfigure back ssh
@@ -244,6 +254,7 @@ connection_stablish(){
             return 1
         fi
         el_debug "SSH tunnel process ${pid_connection} seems stable."
+        is_connection_successful=1
         break
     done
 
@@ -268,7 +279,7 @@ connection_stablish(){
         if ! ((is_connection_started)) ; then
             if [[ "$loops" -gt 2 ]] ; then
 
-                kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null
+                kill "$pid_progress" 2>/dev/null || kill -9 "${pid_progress}" 2>/dev/null || true
 
                 el_explain 0 "using port __${port_local}__"
                 is_connection_started=1
@@ -778,9 +789,11 @@ fi
         sleep 10
     done
 
-    el_error "Failed to establish connection after 5 minutes."
+    if (( ! is_connection_successful )); then
+        el_error "Failed to establish connection after 5 minutes."
+    fi
 
-cleanups
+    cleanups
 }
 
 #
