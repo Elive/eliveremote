@@ -53,7 +53,7 @@ select_connection_waiting(){
 
     while true
     do
-        list="$( sudo netstat -puta | grep -E "(localhost:204.|localhost:205.|localhost:206.).*LISTEN" | grep -v "^tcp6" | tr ' ' '\n' | grep "localhost:20" )"
+        list="$( sudo netstat -tlnp | grep -E "(127\.0\.0\.1|localhost|0\.0\.0\.0):(204.|205.|206.)" | awk '{print $4}' )"
         [[ -n "$list" ]] && break
 
         echo -ne "\rWaiting...   "
@@ -68,10 +68,10 @@ select_connection_waiting(){
 
     # pick one, multiple connections
     if [[ "$( echo "$list" | wc -l )" -gt 1 ]] ; then
-        port="$( echo -e "${list}" | sed -e 's|localhost:||g' | zenity --list --text="Select one of the waiting ports" --column="Port" )"
+        port="$( echo -e "${list}" | sed -e 's|.*:||g' | yad --center --borders=20 --image=/usr/share/icons/gnome/256x256/apps/logo-elive.png --window-icon=/usr/share/icons/gnome/256x256/apps/logo-elive.png --list --text="Select one of the waiting ports" --column="Port" )"
+    else
+        port="${list##*:}"
     fi
-
-    port="${list##*:}"
 
 }
 
