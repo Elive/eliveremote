@@ -117,7 +117,7 @@ do_disconnect(){
     fi
 
     # get the pid of the listening process and eject it
-    pid_connection="$( sudo netstat -puta | grep "localhost:${port}" | grep -v "^tcp6" | tr ' ' '\n' | grep "/sshd:" | sed 's|/sshd:.*$||g' | sort -u | head -1  )"
+    pid_connection="$( sudo netstat -tlnp | grep -E "(127\.0\.0\.1|localhost|0\.0\.0\.0):${port}" | awk '{print $7}' | cut -d'/' -f1 | head -1 )"
 
     if [[ -n "$pid_connection" ]] ; then
         echo "killing connection with pid: $pid_connection"
