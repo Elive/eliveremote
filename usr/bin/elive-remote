@@ -355,7 +355,7 @@ connection_stablish(){
                 sleep 5
                 if [[ -n "$DISPLAY" ]] && [[ "$watch_session" == "TRUE" ]] ; then
                     # wait that connection happens
-                    while ! pidof tmux
+                    while ! pidof -q tmux
                     do
                         sleep 1
                     done
