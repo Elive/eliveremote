@@ -220,14 +220,37 @@ connection_stablish(){
 
     # This SSH command establishes the persistent tunnel. 
     # The '-N' flag ensures the connection stays open without executing a remote command.
-    el_debug "Establishing persistent tunnel: ssh -p ${SURGEON_PORT} -o ExitOnForwardFailure=yes -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -N -R ${port_local}:localhost:22 eliveremote@${SURGEON_ADDRESS}"
-    ssh -p "${SURGEON_PORT}" -o ExitOnForwardFailure=yes -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -N -R "${port_local}:localhost:22" "eliveremote@${SURGEON_ADDRESS}" >"${logs}" 2>&1  &
-    pid_connection="$!"
-    el_debug "Persistent tunnel PID: ${pid_connection}"
+    while true ; do
+        el_debug "Establishing persistent tunnel: ssh -p ${SURGEON_PORT} -o ExitOnForwardFailure=yes -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i \"${HOME}/.ssh/eliveremote-id_rsa\" -N -R ${port_local}:localhost:22 eliveremote@${SURGEON_ADDRESS}"
+        ssh -p "${SURGEON_PORT}" -o ExitOnForwardFailure=yes -o ConnectTimeout=40 -o StrictHostKeyChecking=no -o ServerAliveInterval=100 -i "${HOME}/.ssh/eliveremote-id_rsa" -N -R "${port_local}:localhost:22" "eliveremote@${SURGEON_ADDRESS}" >"${logs}" 2>&1  &
+        pid_connection="$!"
+        el_debug "Persistent tunnel PID: ${pid_connection}"
+
+        # Wait a bit to see if the connection holds
+        sleep 3
+
+        if ! ps -p "${pid_connection}" >/dev/null 2>&1 ; then
+            el_debug "SSH tunnel process ${pid_connection} died immediately. Remote server might not be ready."
+            if [[ -n "$DISPLAY" ]] ; then
+                el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
+            else
+                el_explain 0 "$( eval_gettext "Waiting for remote administrator to be ready..." )"
+            fi
+            sleep 10
+            continue
+        fi
+        break
+    done
 
     while true
     do
         sleep 1
+
+        # check if the process is still alive
+        if ! ps -p "${pid_connection}" >/dev/null 2>&1 ; then
+             el_debug "Connection process ${pid_connection} is no longer running."
+             break
+        fi
 
         # try with another port if this one not works
         if ! ((is_port_accepted)) ; then
@@ -338,7 +361,8 @@ connection_stablish(){
         fi
 
         # check if connection stills up
-        if ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
+        if ! ps -p "${pid_connection}" >/dev/null 2>&1 && ! ps aux | grep -v grep | grep -q "ssh.*StrictHostKeyChecking.*${port_local}" ; then
+            el_debug "Connection lost or finished for port ${port_local}"
 
             if [[ -n "$DISPLAY" ]] ; then
                 $guitool --info --text="$( eval_gettext "Connection finished" )" 2>/dev/null
