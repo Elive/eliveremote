@@ -91,6 +91,7 @@ do_connect(){
 
     el_explain 0 "ssh -p ${port} ${sshopts} ${remote_user}@localhost"
     ssh -p ${port} ${sshopts} ${remote_user}@localhost
+    return $?
 
 
     # if we can't directly connect, wait and connect
@@ -247,12 +248,12 @@ main(){
 
     if ((do_connect)) ; then
         select_connection_waiting
-        do_connect
-
-        if el_confirm "disconnect remote user?" ; then
-            do_disconnect
-        else
-            el_info "You can reconnect again, and you will have -Y option for X11 access"
+        if do_connect ; then
+            if el_confirm "disconnect remote user?" ; then
+                do_disconnect
+            else
+                el_info "You can reconnect again, and you will have -Y option for X11 access"
+            fi
         fi
     fi
 
