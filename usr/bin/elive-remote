@@ -35,13 +35,15 @@ cleanups(){
 
     # remove existing connection
     if [[ -n "$pid_connection" ]] ; then
+        # Kill the process group to ensure children (ssh) are also killed
+        kill -TERM -"$pid_connection" 2>/dev/null || kill -9 -"$pid_connection" 2>/dev/null
         kill "$pid_connection" 2>/dev/null || kill -9 "${pid_connection}" 2>/dev/null
     fi
 
     # remove other possible connections
     if ps aux | grep -v grep | grep -qE "ssh.*StrictHostKey" ; then
-        killall ssh 2>/dev/null
-        killall -9 ssh 2>/dev/null
+        pkill -f "ssh.*StrictHostKey" 2>/dev/null
+        pkill -9 -f "ssh.*StrictHostKey" 2>/dev/null
     fi
 
     # close progress dialog
