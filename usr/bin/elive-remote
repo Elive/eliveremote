@@ -26,6 +26,7 @@ connection_attemps=0
 cleanups(){
     # pre {{{
     el_debug "Function: ${FUNCNAME[0]} | Args: $* | Called by: ${FUNCNAME[1]} at line ${BASH_LINENO[0]}"
+    [[ "$1" == "1" ]] && el_debug "Cleanups called with exit status 1, possibly from el_check_variables or an error trap"
 
     # }}}
 
@@ -382,7 +383,12 @@ connection_stablish(){
             # we should probably go back to the establishment loop instead of exiting.
             if ! ((is_connection_started)) ; then
                 el_debug "Connection lost before being fully started. Remote server might have disconnected us. Retrying establishment..."
-                sleep 5
+                if [[ -n "$DISPLAY" ]] ; then
+                    el_notify "normal" "logo-elive" "Waiting" "$( eval_gettext "The remote administrator is not yet ready to receive your connection. Waiting and retrying..." )"
+                else
+                    el_explain 0 "$( eval_gettext "The remote administrator is not yet ready. Retrying..." )"
+                fi
+                sleep 10
                 connection_stablish
                 return
             fi
